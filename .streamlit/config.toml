@@ -1,0 +1,7 @@
+# Gilt, wenn die App aus diesem Ordner gestartet wird (streamlit run streamlit_app.py).
+[browser]
+gatherUsageStats = false
+
+[server]
+# Große Systemdateien und Kataloge (AGF) können mehrere MB haben.
+maxUploadSize = 50

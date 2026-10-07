@@ -1,0 +1,7 @@
+# Laufzeit-Abhängigkeiten, wenn die App ohne "pip install ." gestartet wird:
+#   streamlit run streamlit_app.py
+# raytatouille ist nicht enthalten: Es wird aus dem Quellcode gebaut (docs/installation.md).
+streamlit>=1.40
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.8

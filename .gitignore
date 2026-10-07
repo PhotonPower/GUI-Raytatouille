@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Werkzeuge
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Streamlit (lokale Geheimnisse nie einchecken)
+.streamlit/secrets.toml
+
+# Editoren
+.vscode/
+.idea/
+
+# Claude Code worktrees
+.claude/worktrees/
+
+# Lokale Kopie der Bibliothek, falls neben dem Projekt geklont
+/Raytatouille/

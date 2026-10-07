@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rtt-explorer"
+dynamic = ["version"]
+description = "Streamlit-Oberfläche für die Optikdesign-Bibliothek Raytatouille"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "PhotonPower" }]
+keywords = ["optics", "optical design", "raytracing", "streamlit", "raytatouille"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+# raytatouille ist bewusst keine harte Abhängigkeit: Es liegt nicht auf PyPI und wird aus dem
+# Quellcode gebaut (C++, siehe docs/installation.md). Der Extra "lib" holt es aus GitHub.
+dependencies = [
+  "streamlit>=1.40",
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+lib = ["raytatouille[plot] @ git+https://github.com/PhotonPower/Raytatouille.git"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+rtt-explorer = "rtt_explorer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/PhotonPower/GUI-Raytatouille"
+Library = "https://github.com/PhotonPower/Raytatouille"
+Issues = "https://github.com/PhotonPower/GUI-Raytatouille/issues"
+
+[tool.hatch.metadata]
+# Für den Extra "lib" (Git-URL statt PyPI-Name).
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "src/rtt_explorer/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rtt_explorer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+  "library: braucht das installierte Paket raytatouille (und ein Raytatouille-Repo über RTT_REPO)",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+  "E741",  # Namen wie l, I in kurzen mathematischen Ausdrücken
+  "B905",  # zip ohne strict
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["rtt_explorer"]
+known-third-party = ["raytatouille"]
+
+[tool.ruff.lint.per-file-ignores]
+# Das Backend muss vor dem ersten pyplot-Import gesetzt werden.
+"scripts/*" = ["E402", "I001"]
