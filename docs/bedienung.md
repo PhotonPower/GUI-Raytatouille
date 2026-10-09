@@ -61,8 +61,28 @@ Fehler.
 
 **Seidel:** Summen S_I bis S_V, C_L, C_T und Beiträge je Fläche; W040 = S_I/8 in Wellen.
 
+Spot, Ray Fans und OPD zeigen Warnungen der Bibliothek mit Fläche und Diagnosecode (z. B.
+`rays.lost`, `stop.clips_beam`), einen Aufklapper mit den verlorenen Strahlen je Status und der Fläche
+mit den meisten Verlusten sowie den Knopf **Ergebnis als JSON** (Format `raytatouille-result`, lesbar
+mit `rt.results.load_json`).
+
+**Prescription:** paraxialer Randstrahl (y, u, i) und Hauptstrahl (ȳ, ū, ī) je Flächenereignis mit
+z-Position, Brechzahl danach und Lagrange-Invariante; darüber Baulänge, Objektabstand, paraxiale
+Arbeitsblende 1/(2|n′u′|) und Bild-NA |n′u′|. Ein Diagramm zeigt die Strahlhöhen über z. Nur für
+rotationssymmetrische Pfade; ohne Blende bleiben die Strahlspalten leer.
+
 **Strahlenbündel:** Pupillenraster hexapolar, Gitter oder Zufall (fester Seed), Statustabelle,
 Auftreffpunkte und CSV-Export.
+
+**Pfade & Ghosts:** Strahlquelle wie im Layout (Pupille oder freies Bündel).
+- *Transmission je Pfad:* mittlerer, kleinster und größter Leistungsanteil; verlorene Strahlen zählen 0.
+  Für Systeme mit Strahlteilern, Gittern (eine Zeile je Beugungsordnung) oder Kristallen (o- und
+  e-Strahl) das freie Bündel nehmen.
+- *Optische Wegdifferenz:* OPL_b − OPL_a zweier Pfade, die auf derselben Fläche enden, in mm und in
+  Wellen der gewählten Wellenlänge, als Karte über Pupille oder Bündel.
+- *Ghosts:* nach Ankreuzen von „Ghost-Ranking berechnen“ alle Zwei-Reflexions-Ghosts des gewählten
+  Pfads, sortiert nach relativer Bestrahlungsstärke im Bild. Der Auflösungsradius r₀ ist eine
+  Modellwahl (Detektor). Braucht eine Blende.
 
 **Polarisation:** Quelle unpolarisiert, linear (Winkel) oder zirkular. Karten über Pupille oder Bündel
 für Transmission, Diattenuation, Retardance und Zirkularität, mittlerer Stokes-Vektor und
@@ -73,5 +93,10 @@ Einfallsrichtung austreten (Platten, Wellenplatten, ideale Elemente). Konvention
 **Materialien:** Katalogtabelle mit Suche und Filtern, Glaskarte (n_d über ν_d), Details und innere
 Transmission, Dispersionskurven und Abbe-Zahl. Absolute Brechzahlen beziehen sich auf Systemtemperatur
 und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher leicht ab.
+
+**Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt,
+Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
+Wechselwirkung, Phase), die Pfade mit ihren Ereignissen sowie Parametertabelle und
+Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Nur lesen.
 
 **System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`.
