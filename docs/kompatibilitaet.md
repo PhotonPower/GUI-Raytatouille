@@ -19,12 +19,18 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `path_eval` | `analysis.path_transmission`, `analysis.opl_difference` | Ansicht Pfade & Ghosts zeigt nur einen Hinweis | ab 0.6.0 (#122) |
 | `ghosts` | `compile_with_ghosts`, `analysis.ghost_ranking` | Kein Ghost-Ranking | ab 0.6.0 (#123, #124) |
 | `results` | `raytatouille.results` (`to_json()` der Ergebnisse) | Kein JSON-Export der Ergebnisse | ab 0.5.0 (#86) |
+| `configs` | `System.resolved` und `CompiledSystem.configuration` | Keine Konfigurationsauswahl; kompiliert wird die Vorgabe | ab 0.7.0 (#165, #169) |
+| `optim` | `raytatouille.optim.optimize` | Ansicht Optimierung zeigt nur einen Hinweis | ab 0.7.0 (#167–#170) |
+| `reports` | `analysis.dimension_report`, `analysis.raytrace_report` | Ansicht Reports zeigt nur einen Hinweis | ab 0.7.0 (#177) |
+| `gauss` | `trace.GaussPupil`, `trace.gauss_pupil_weights` | Kein Raster „Gauß-Quadratur“ im Strahlenbündel | ab 0.7.0 (#168) |
 
 ## Getestet
 
-Stand 2026-10-09, Windows 11, Python 3.12, Streamlit 1.65, Bibliothek mit MSVC und vcpkg gebaut:
+Windows 11, Python 3.12, Streamlit 1.65, Bibliothek mit MSVC und vcpkg gebaut:
 
-- Raytatouille `main` (0.6.0, Commit `9dab188`): alle Tests grün; alle Flags vorhanden.
+- 2026-10-10, Raytatouille `v0.7.0` (Commit `41fff00`): alle Tests grün; alle Flags vorhanden.
+- 2026-10-09, Raytatouille `main` (0.6.0, Commit `9dab188`): alle Tests grün; ohne `configs`, `optim`,
+  `reports` und `gauss`.
 
 Stand 2026-10-07, Linux, Python 3.12, Streamlit aktuell:
 

@@ -35,6 +35,7 @@ flowchart TD
 | `repo`, `colors`, `stretch` | Repo-Suche, Spektralfarben, Streamlit-Breitenschalter | nein |
 | `messages` | Diagnosen mit Code und Flächenname, Tabelle verlorener Strahlen | nein |
 | `model_table` | Modellbaum (`System.root`) als Tabellenzeilen | nein |
+| `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
 | `drawing`, `rays` | Linsenschnitt zeichnen, freies kollimiertes Bündel | ja |
@@ -44,12 +45,16 @@ flowchart TD
 
 ## Zwischenspeicher und Zustand
 
-- `make_system` ist zwischengespeichert; Schlüssel sind JSON-Text, Katalogbytes, Coatingbytes sowie
-  Temperatur und Druck. Fehler kommen als Text im Ergebnis zurück, nie als Exception.
+- `make_system` ist zwischengespeichert; Schlüssel sind JSON-Text, Katalogbytes, Coatingbytes,
+  Temperatur, Druck und die Konfiguration. Fehler kommen als Text im Ergebnis zurück, nie als Exception.
 - `st.session_state` wird nur vom Systembaukasten und der Kopfzeile benutzt: `preset`,
   `loaded_preset`, `bdf` (Tabelle), `bver` (Version des Editors), `bedited`, `focus_shift`,
   `glass_options`, `picker_row`, `picker_glass`. Ändert ein Knopf die Tabelle, erhöht er `bver`,
   damit der Editor neu aufgebaut wird.
+- Die Optimierung benutzt `optim_result` (letztes Ergebnis mit seinen Eingaben) und
+  `optim_override` (übernommenes System mit Quelle und Ausgangstext). `explorer.run` setzt bei jedem
+  Lauf `optim_source` und `optim_base` und verwirft `optim_override`, sobald sich Quelle oder
+  Ausgangstext ändern.
 - Widget-Schlüssel der Katalogauswahl enthalten Quelle und Referenzen, damit die Vorauswahl bei
   einem Systemwechsel neu berechnet wird.
 

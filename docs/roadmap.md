@@ -14,6 +14,8 @@ Vorschlag, keine Zusage.
 - **G9 Materialbibliothek:** Katalog-Browser, Glaskarte, Katalog-Alias.
 - **G10 Diagnosen und Ergebnisformat:** Warnungen mit Code und Fläche, Verlusttabellen, JSON-Export.
 - **Multi-Path (0.6.0):** Pfadtransmission, OPL-Differenz und Ghost-Ranking.
+- **Optimierung (0.7.0):** Merit-Funktion aus der Datei, Lauf, Ergebnis übernehmen; Konfigurationen,
+  Reports (R1) und Gauß-Pupille.
 
 ## Bekannte Grenzen
 
@@ -23,9 +25,10 @@ Vorschlag, keine Zusage.
   Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
   darf. Große Rechnungen blockieren die Bedienung.
 - **Kein Footprint, keine automatische freie Öffnung (G6).**
-- **Parametertabelle und Konfigurationen (Schema 0.4)** werden angezeigt, aber nicht ausgewertet; die
-  Bibliothek kann sie in Python noch nicht auflösen.
-- **Keine Optimierung** und keine Mehrpfad-Systeme über das hinaus, was die Bibliothek anbietet.
+- **Merit-Funktion nur aus der Datei:** Operanden, Generatoren und Variablen lassen sich im Explorer
+  nicht bearbeiten, nur in der `.rtt.json`.
+- **Optimierung und Mehrpfad-Systeme** nur so weit, wie die Bibliothek sie anbietet (z. B. keine
+  exakten Nebenbedingungen im Optimierer, #196 der Bibliothek).
 - **Streamlit rechnet bei jeder Eingabe neu.** Für sehr große Systeme ist das träge.
 - Ungetestet: Python 3.10 im Betrieb. Windows ist getestet (siehe [Kompatibilität](kompatibilitaet.md)),
   läuft aber nicht in der CI.
@@ -35,4 +38,5 @@ Vorschlag, keine Zusage.
 - Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
 - Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.
 - Abbruchknopf und Fortschrittsbalken über `CancelToken` und `progress=`.
-- Konfigurationen umschalten, sobald die Bibliothek sie in Python auflöst.
+- Merit-Funktion und Variablen in der Oberfläche bearbeiten (über `rt.Editor`).
+- Alle Konfigurationen eines Zooms nebeneinander zeichnen.

@@ -35,10 +35,15 @@ class Features:
     path_eval: bool = False  # analysis.path_transmission and analysis.opl_difference
     ghosts: bool = False  # compile_with_ghosts and analysis.ghost_ranking
     results: bool = False  # to_json() on result objects (raytatouille.results)
+    configs: bool = False  # compile(..., configuration=) and System.resolved
+    optim: bool = False  # raytatouille.optim (optimize, MeritFunction)
+    reports: bool = False  # analysis.dimension_report, system_report, raytrace_report
+    gauss: bool = False  # trace.GaussPupil (Gauss quadrature pupil sampling)
 
     @classmethod
     def detect(cls) -> Features:
         analysis = getattr(rt, "analysis", None)
+        trace = getattr(rt, "trace", None)
         return cls(
             paths=_has_record_path(),
             layout=hasattr(rt, "layout"),
@@ -52,6 +57,11 @@ class Features:
             path_eval=hasattr(analysis, "path_transmission") and hasattr(analysis, "opl_difference"),
             ghosts=hasattr(rt, "compile_with_ghosts") and hasattr(analysis, "ghost_ranking"),
             results=hasattr(rt, "results"),
+            # nanobind functions have no reliable signature: detect by the attributes added with them
+            configs=hasattr(rt.System, "resolved") and hasattr(rt.CompiledSystem, "configuration"),
+            optim=hasattr(getattr(rt, "optim", None), "optimize"),
+            reports=hasattr(analysis, "dimension_report") and hasattr(analysis, "raytrace_report"),
+            gauss=hasattr(trace, "GaussPupil") and hasattr(trace, "gauss_pupil_weights"),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -69,6 +79,10 @@ class Features:
             ("Pfadtransmission und OPL-Differenz", self.path_eval),
             ("Ghost-Analyse (compile_with_ghosts)", self.ghosts),
             ("Ergebnisse als JSON (to_json)", self.results),
+            ("Konfigurationen (compile configuration=)", self.configs),
+            ("Optimierung (rt.optim)", self.optim),
+            ("Reports (Abmessungen, Systemdaten, Raytrace)", self.reports),
+            ("Gauß-Pupille (trace.GaussPupil)", self.gauss),
         ]
 
 

@@ -114,8 +114,9 @@ def _opl_difference(ctx: AppContext, kwargs: dict, start_x, start_y, w: int) -> 
 
 
 @st.cache_resource(show_spinner="Ghost-Pfade werden kompiliert …", max_entries=4)
-def _ghost_system(system_key: str, base: str, _system, _lib, _coatings):
-    return rt.compile_with_ghosts(_system, base, _lib, _coatings)
+def _ghost_system(system_key: str, base: str, configuration: int | None, _system, _lib, _coatings):
+    kwargs = {} if configuration is None else {"configuration": configuration}
+    return rt.compile_with_ghosts(_system, base, _lib, _coatings, **kwargs)
 
 
 def _ghosts(ctx: AppContext, f: int, w: int, rings: int) -> None:
@@ -134,7 +135,8 @@ def _ghosts(ctx: AppContext, f: int, w: int, rings: int) -> None:
                             "dauert das."):
         return
     try:
-        ghosts = _ghost_system(ctx.system_key, ctx.path_choice, ctx.system, ctx.lib, ctx.coatings)
+        ghosts = _ghost_system(ctx.system_key, ctx.path_choice, ctx.configuration, ctx.system, ctx.lib,
+                               ctx.coatings)
     except (rt.RaytatouilleError, ValueError) as error:
         st.error(f"Ghost-Pfade: {error}")
         return
