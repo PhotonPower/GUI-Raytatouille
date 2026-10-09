@@ -28,6 +28,26 @@ def _can_aim(comp, path: str, reference_wavelength: int) -> bool:
     return True
 
 
+def _optimized_override(source_key: str, json_text: str) -> str:
+    """The adopted optimization result instead of the source text, while source and text are unchanged.
+
+    The view "Optimierung" stores it in ``optim_override``; ``optim_source`` and ``optim_base`` hold the
+    original source so that a second optimization keeps the same base.
+    """
+    ss = st.session_state
+    ss.optim_source, ss.optim_base = source_key, json_text
+    override = ss.get("optim_override")
+    if not override:
+        return json_text
+    if override["source"] != source_key or override["base"] != json_text:
+        del ss["optim_override"]  # the source changed: the result belongs to another system
+        return json_text
+    a, b = st.columns([5, 1])
+    a.info("Das optimierte System ist aktiv; alle Ansichten zeigen es. Die Quelle selbst ist unverändert.")
+    b.button("Verwerfen", on_click=lambda: ss.pop("optim_override", None), key="optim_discard")
+    return override["json"]
+
+
 def run() -> None:
     """Execute one script run. ``st.stop()`` ends it early when there is nothing to show."""
     st.title("🔬 Raytatouille Explorer")
@@ -38,6 +58,7 @@ def run() -> None:
     project = project_sidebar()
     candidates, coat_candidates = collect_catalogs(project.repo, project.repo_ok)
     json_text, source_key, builder_context = system_source(project.mode, project.repo)
+    json_text = _optimized_override(source_key, json_text)
 
     system_dict = json.loads(json_text)
     refs = material_refs(system_dict)
