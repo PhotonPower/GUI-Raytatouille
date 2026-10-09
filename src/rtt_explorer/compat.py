@@ -29,9 +29,16 @@ class Features:
     alias: bool  # MaterialLibrary.add_catalog_text (catalogue alias)
     polar: bool  # raytatouille.polar
     coatings: bool  # CoatingLibrary
+    diagnostics: bool = False  # RaytatouilleWarning, Diagnostic.code, result.losses (G10)
+    prescription: bool = False  # paraxial.prescription (G5)
+    model: bool = False  # System.root and the model tree (G3, read only)
+    path_eval: bool = False  # analysis.path_transmission and analysis.opl_difference
+    ghosts: bool = False  # compile_with_ghosts and analysis.ghost_ranking
+    results: bool = False  # to_json() on result objects (raytatouille.results)
 
     @classmethod
     def detect(cls) -> Features:
+        analysis = getattr(rt, "analysis", None)
         return cls(
             paths=_has_record_path(),
             layout=hasattr(rt, "layout"),
@@ -39,6 +46,12 @@ class Features:
             alias=hasattr(rt.MaterialLibrary, "add_catalog_text"),
             polar=hasattr(rt, "polar"),
             coatings=hasattr(rt, "CoatingLibrary"),
+            diagnostics=hasattr(rt, "RaytatouilleWarning") and hasattr(analysis, "RayLosses"),
+            prescription=hasattr(getattr(rt, "paraxial", None), "prescription"),
+            model=hasattr(rt.System, "root") and hasattr(rt, "model"),
+            path_eval=hasattr(analysis, "path_transmission") and hasattr(analysis, "opl_difference"),
+            ghosts=hasattr(rt, "compile_with_ghosts") and hasattr(analysis, "ghost_ranking"),
+            results=hasattr(rt, "results"),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -50,6 +63,12 @@ class Features:
             ("Katalog-Alias", self.alias),
             ("Polarisation (rt.polar)", self.polar),
             ("Coatings (CoatingLibrary)", self.coatings),
+            ("Diagnosecodes und Strahlverluste", self.diagnostics),
+            ("Prescription (paraxial.prescription)", self.prescription),
+            ("Modell lesen (System.root)", self.model),
+            ("Pfadtransmission und OPL-Differenz", self.path_eval),
+            ("Ghost-Analyse (compile_with_ghosts)", self.ghosts),
+            ("Ergebnisse als JSON (to_json)", self.results),
         ]
 
 
