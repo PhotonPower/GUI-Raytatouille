@@ -77,7 +77,10 @@ def run() -> None:
         features=FEATURES, system=system, comp=comp, lib=lib, system_dict=system_dict,
         path_choice=path_choice, first_order=first_order(comp, path_choice),
         can_aim=_can_aim(comp, path_choice, ref_wl), candidates=candidates, named=named,
-        builder_context=builder_context, wl_um=wl_um, ref_wl=ref_wl,
+        builder_context=builder_context, coatings=state["coatings"],
+        # The libraries are cached resources: their id stands for the catalogue contents.
+        system_key=repr((json_text, id(lib), id(state["coatings"]), project.temperature, project.pressure)),
+        wl_um=wl_um, ref_wl=ref_wl,
         field_ids=list(range(comp.field_count)), wl_ids=list(range(len(wl_um))))
     render_header(ctx)
 
