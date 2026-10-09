@@ -10,7 +10,7 @@ import streamlit as st
 from .catalogs import coating_refs, material_refs
 from .compat import FEATURES
 from .context import AppContext
-from .loader import make_system
+from .loader import configuration_names, make_system
 from .ui.catalog_select import select_catalogs
 from .ui.header import first_order, render_header
 from .ui.sidebar import collect_catalogs, project_sidebar
@@ -50,7 +50,14 @@ def run() -> None:
 
     catalog_tuple = tuple((cname, candidates[label][1]) for label, cname in named)
     coating_tuple = tuple((coat_candidates[s][0], coat_candidates[s][1]) for s in selected_coatings)
-    state = make_system(json_text, catalog_tuple, coating_tuple, project.temperature, project.pressure)
+    configuration = None
+    names = configuration_names(json_text) if FEATURES.configs else []
+    if names:
+        configuration = names.index(st.sidebar.selectbox(
+            "Konfiguration", names, key=f"config_{source_key}",
+            help="Spalte der Parametertabelle, mit der das System kompiliert wird (Schema 0.4)."))
+    state = make_system(json_text, catalog_tuple, coating_tuple, project.temperature, project.pressure,
+                        configuration)
 
     if state["failure"]:
         st.error(state["failure"])
@@ -67,7 +74,8 @@ def run() -> None:
     if FEATURES.glasses:
         ss.glass_options = [g.reference for cat in lib.catalogs() for g in lib.glasses(cat)][:3000]
 
-    st.subheader(system.name or "System")
+    config_name = getattr(comp, "configuration_name", "")
+    st.subheader((system.name or "System") + (f" – Konfiguration {config_name}" if config_name else ""))
     paths = list(comp.path_names)
     path_choice = paths[0] if len(paths) == 1 else st.sidebar.selectbox("Pfad", paths)
     wl_um = list(comp.wavelengths_um)
@@ -77,9 +85,10 @@ def run() -> None:
         features=FEATURES, system=system, comp=comp, lib=lib, system_dict=system_dict,
         path_choice=path_choice, first_order=first_order(comp, path_choice),
         can_aim=_can_aim(comp, path_choice, ref_wl), candidates=candidates, named=named,
-        builder_context=builder_context, coatings=state["coatings"],
+        builder_context=builder_context, coatings=state["coatings"], configuration=configuration,
         # The libraries are cached resources: their id stands for the catalogue contents.
-        system_key=repr((json_text, id(lib), id(state["coatings"]), project.temperature, project.pressure)),
+        system_key=repr((json_text, id(lib), id(state["coatings"]), project.temperature, project.pressure,
+                         configuration)),
         wl_um=wl_um, ref_wl=ref_wl,
         field_ids=list(range(comp.field_count)), wl_ids=list(range(len(wl_um))))
     render_header(ctx)

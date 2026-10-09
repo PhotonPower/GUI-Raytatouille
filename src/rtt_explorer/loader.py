@@ -51,11 +51,22 @@ def make_coatings(coatings: tuple[tuple[str, bytes], ...]):
     return lib
 
 
+@st.cache_data(show_spinner=False)
+def configuration_names(json_text: str) -> list[str]:
+    """Names of the configurations of a system (empty without, or if the text does not parse)."""
+    try:
+        return [c.name for c in rt.System.from_json(json_text).configurations]
+    except (rt.RaytatouilleError, ValueError, AttributeError):
+        return []
+
+
 @st.cache_resource(show_spinner=False)
 def make_system(json_text: str, catalogs: tuple[tuple[str, bytes], ...],
                 coatings: tuple[tuple[str, bytes], ...],
-                temperature_c: float | None, pressure_atm: float | None):
-    """Parse, validate and compile; errors come back as text, never as exceptions."""
+                temperature_c: float | None, pressure_atm: float | None, configuration: int | None = None):
+    """Parse, validate and compile; errors come back as text, never as exceptions.
+
+    ``configuration`` is the column of the parameter table to compile (None: the library default)."""
     result = {"system": None, "compiled": None, "library": None, "coatings": None, "errors": [],
               "warnings": [], "failure": None}
     found = []  # validate diagnostics and library warnings, formatted once the surfaces are known
@@ -81,10 +92,11 @@ def make_system(json_text: str, catalogs: tuple[tuple[str, bytes], ...],
                 else:
                     found.append(d)
             if not result["errors"]:
+                kwargs = {} if configuration is None else {"configuration": configuration}
                 if coating_lib is not None:
-                    result["compiled"] = rt.compile(system, result["library"], coating_lib)
+                    result["compiled"] = rt.compile(system, result["library"], coating_lib, **kwargs)
                 else:
-                    result["compiled"] = rt.compile(system, result["library"])
+                    result["compiled"] = rt.compile(system, result["library"], **kwargs)
         if FEATURES.diagnostics:
             # Catalogue warnings come from load_warnings: make_library is cached and warns only once.
             for w in result["library"].load_warnings:
