@@ -26,7 +26,9 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
     if mode == "Beispielsystem":
         files = sorted((repo / "tests" / "reference").rglob("*.rtt.json"))
         labels = [str(p.relative_to(repo / "tests" / "reference")) for p in files]
-        default_index = labels.index("m2/cooke_triplet.rtt.json") if "m2/cooke_triplet.rtt.json" in labels else 0
+        # Compared as paths: the labels use the platform separator (backslash on Windows).
+        default = Path("m2/cooke_triplet.rtt.json")
+        default_index = next((i for i, label in enumerate(labels) if Path(label) == default), 0)
         choice = st.sidebar.selectbox("Beispielsystem", labels, index=default_index)
         json_text = files[labels.index(choice)].read_text(encoding="utf-8")
         source_key = choice
