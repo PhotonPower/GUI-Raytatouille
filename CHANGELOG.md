@@ -17,6 +17,9 @@ Angepasst an Raytatouille 0.7.0 (Tag `v0.7.0`, Commit `41fff00`).
 - Ansicht **Reports**: Abmessungen (Mitten- und Randdicke, Durchmesser), Systemdaten und Raytrace mit
   lokalen Koordinaten, jeweils als CSV und JSON.
 - Strahlenbündel: Pupillenraster „Gauß-Quadratur“ mit den Quadraturgewichten in der CSV.
+- **Optimieren im Baukasten:** Häkchen „R var“, „k var“, „d var“ in der Flächentabelle und eine
+  Merit-Tabelle (EFL, BFL, Blendenzahl, Randstrahl im Fokus, RMS-Spot, RMS-Wellenfront); das Ergebnis
+  lässt sich in die Tabelle zurückschreiben.
 - Funktionsflags `configs`, `optim`, `reports` und `gauss`.
 
 ### Hinzugefügt (0.6.0)

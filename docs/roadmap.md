@@ -25,8 +25,8 @@ Vorschlag, keine Zusage.
   Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
   darf. Große Rechnungen blockieren die Bedienung.
 - **Kein Footprint, keine automatische freie Öffnung (G6).**
-- **Merit-Funktion nur aus der Datei:** Operanden, Generatoren und Variablen lassen sich im Explorer
-  nicht bearbeiten, nur in der `.rtt.json`.
+- **Merit-Funktion:** Im Baukasten gibt es eine Auswahl gängiger Operanden; alle Operandentypen,
+  Grenzen von Variablen und Konfigurationen nur in der `.rtt.json`.
 - **Optimierung und Mehrpfad-Systeme** nur so weit, wie die Bibliothek sie anbietet (z. B. keine
   exakten Nebenbedingungen im Optimierer, #196 der Bibliothek).
 - **Streamlit rechnet bei jeder Eingabe neu.** Für sehr große Systeme ist das träge.
@@ -38,5 +38,6 @@ Vorschlag, keine Zusage.
 - Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
 - Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.
 - Abbruchknopf und Fortschrittsbalken über `CancelToken` und `progress=`.
-- Merit-Funktion und Variablen in der Oberfläche bearbeiten (über `rt.Editor`).
+- Merit-Funktion und Variablen geladener Dateien in der Oberfläche bearbeiten (über `rt.Editor`);
+  Obergrenzen für Variablen im Baukasten.
 - Alle Konfigurationen eines Zooms nebeneinander zeichnen.

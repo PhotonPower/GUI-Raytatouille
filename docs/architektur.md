@@ -49,7 +49,8 @@ flowchart TD
   Temperatur, Druck und die Konfiguration. Fehler kommen als Text im Ergebnis zurück, nie als Exception.
 - `st.session_state` wird nur vom Systembaukasten und der Kopfzeile benutzt: `preset`,
   `loaded_preset`, `bdf` (Tabelle), `bver` (Version des Editors), `bedited`, `focus_shift`,
-  `glass_options`, `picker_row`, `picker_glass`. Ändert ein Knopf die Tabelle, erhöht er `bver`,
+  `glass_options`, `picker_row`, `picker_glass`, `bmerit` (Anfangsinhalt der Merit-Tabelle). Ändert
+  ein Knopf die Tabelle, erhöht er `bver`,
   damit der Editor neu aufgebaut wird.
 - Die Optimierung benutzt `optim_result` (letztes Ergebnis mit seinen Eingaben) und
   `optim_override` (übernommenes System mit Quelle und Ausgangstext). `explorer.run` setzt bei jedem

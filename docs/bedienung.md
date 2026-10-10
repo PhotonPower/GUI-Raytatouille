@@ -43,6 +43,22 @@ Referenz) und Feldpunkte. Fehler erscheinen auf Deutsch mit Zeilennummer.
 Hilfen: „Glas aus einem aktiven Katalog eintragen“ und der Knopf **Bildebene auf paraxialen Fokus
 setzen**, der die letzte Dicke anpasst.
 
+**Optimieren im Baukasten** (ab Raytatouille 0.7):
+- Die Häkchen **R var**, **k var** und **d var** machen Radius, Konik und Dicke einer Zeile zu
+  Optimierungsvariablen. Eine plane Fläche (Radius 0) kann nicht variabel sein; dann einen großen
+  Startradius eintragen. Variable Dicken bleiben ≥ 0,01 mm, haben aber keine Obergrenze.
+- Rechts die **Merit-Funktion**: je Zeile ein Operand mit Ziel und Gewicht (leer = 1).
+  | Operand | Bedeutung |
+  | --- | --- |
+  | EFL, BFL | Brenn- bzw. Schnittweite in mm, Ziel nötig |
+  | Blendenzahl bildseitig | paraxiale Blendenzahl, Ziel nötig |
+  | Randstrahl im Fokus | Höhe des Randstrahls (Pupille py = 1) in der Bildebene, Ziel 0 |
+  | RMS-Spot, RMS-Wellenfront | Abbildungsgüte über alle Felder und Wellenlängen (Gauß-Abtastung) |
+- Intern wird jede Variable eine Zeile der Parametertabelle, benannt nach Größe und Tabellenzeile
+  (`R2`, `K2`, `D3`); die Datei hat dann Schema 0.4.0.
+- In der Ansicht **Optimierung** „Optimieren“ drücken; **Ergebnis in die Flächentabelle übernehmen**
+  schreibt die neuen Werte in die Tabelle zurück.
+
 ## Kopfzeile
 
 Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Darunter ein
