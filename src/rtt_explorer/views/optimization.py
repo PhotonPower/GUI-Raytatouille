@@ -10,6 +10,7 @@ import pandas as pd
 import raytatouille as rt
 import streamlit as st
 
+from ..builder import table_updates
 from ..context import AppContext
 from ..optim_table import generator_row, operand_row, status_text, variable_label
 from ..ui.common import STRETCH, diagnostic_line, fmt, show
@@ -36,9 +37,12 @@ def render(ctx: AppContext) -> None:
         missing = [text for text, empty in (("Variablen", not variables),
                                             ("Operanden oder Generatoren", not (operands or generators)))
                    if empty]
-        st.info(f"Dieses System hat keine {' und keine '.join(missing)}. Variablen markiert man in der Datei mit "
-                "`\"variable\": true` an einem Wert oder einer Zeile der Parametertabelle, die Merit-Funktion steht "
-                "im Abschnitt `optimization` (Beispiele: `m5/singlet_solve`, `m5/two_lens_gap`).")
+        where = ("Im Baukasten: Häkchen „R var“, „k var“ oder „d var“ in der Flächentabelle setzen und rechts die "
+                 "Merit-Funktion füllen." if ctx.builder_context is not None else
+                 "Variablen markiert man in der Datei mit `\"variable\": true` an einem Wert oder einer Zeile der "
+                 "Parametertabelle, die Merit-Funktion steht im Abschnitt `optimization` (Beispiele: "
+                 "`m5/singlet_solve`, `m5/two_lens_gap`); oder das System im Baukasten aufbauen.")
+        st.info(f"Dieses System hat keine {' und keine '.join(missing)}. {where}")
         return
 
     start_values = _start_evaluation(ctx, operands, generators)
@@ -170,14 +174,31 @@ def _show_result(ctx: AppContext, result, config_names: list[str]) -> None:
         c.download_button("Ergebnis als JSON", result.to_json(indent=1).encode(), file_name="optimierung.result.json",
                           mime="application/json")
 
-    def adopt():
-        ss.optim_override = {"source": ss.get("optim_source"), "base": ss.get("optim_base"),
-                             "json": result.system.to_json()}
-        ss.pop("optim_result", None)
+    if ctx.builder_context is not None:
+        # The builder names its variables R<n>, K<n>, D<n>: write the end values back into the table.
+        updates = table_updates([(v.row, v.end) for v in result.variables])
 
-    st.button("Ergebnis übernehmen", on_click=adopt, disabled=result.patch == "[]",
-              help="Alle Ansichten zeigen danach das optimierte System, bis du es verwirfst oder die Quelle "
-                   "wechselst.")
+        def adopt_into_table():
+            df = ss.bedited.reset_index(drop=True).copy()
+            for row, column, value in updates:
+                if 0 <= row < len(df):
+                    df.loc[row, column] = value
+            ss.bdf = df
+            ss.bver += 1
+            ss.pop("optim_result", None)
+
+        st.button("Ergebnis in die Flächentabelle übernehmen", on_click=adopt_into_table,
+                  disabled=not updates or result.patch == "[]",
+                  help="Schreibt die optimierten Radien, Koniken und Dicken in die Tabelle des Baukastens.")
+    else:
+        def adopt():
+            ss.optim_override = {"source": ss.get("optim_source"), "base": ss.get("optim_base"),
+                                 "json": result.system.to_json()}
+            ss.pop("optim_result", None)
+
+        st.button("Ergebnis übernehmen", on_click=adopt, disabled=result.patch == "[]",
+                  help="Alle Ansichten zeigen danach das optimierte System, bis du es verwirfst oder die Quelle "
+                       "wechselst.")
     if result.status.name == "CONVERGED_STEP" and any(op.weight >= 1e3 for op in ctx.system.optimization.operands):
         st.caption("Hinweis der Bibliothek (ADR 0030): Große Strafgewichte auf Gleichheitsbedingungen machen ein "
                    "enges, gekrümmtes Tal, in dem der Optimierer früh stehen bleibt. Besser die Bedingung über die "

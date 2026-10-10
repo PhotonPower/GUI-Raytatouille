@@ -70,6 +70,36 @@ def test_bundle_with_gauss_pupil(rtt_repo, monkeypatch):
     ok(at)
 
 
+def test_builder_variables_optimize_and_write_back_into_the_table(rtt_repo, monkeypatch):
+    need("optim")
+    import pandas as pd
+
+    from rtt_explorer.builder import MERIT_COLUMNS, VARIABLE_COLUMNS
+
+    at = start(rtt_repo, monkeypatch)
+    at = widget(at, "radio", "System").set_value("System bauen").run()  # preset: plano-convex singlet
+    ok(at)
+    df = at.session_state["bdf"].copy()
+    for col in VARIABLE_COLUMNS:
+        df[col] = False
+    df.loc[1, "R_var"] = True  # radius of L1.S1
+    df.loc[2, "D_var"] = True  # distance L1.S2 -> image
+    at.session_state["bdf"] = df
+    at.session_state["bver"] = at.session_state["bver"] + 1
+    at.session_state["bmerit"] = pd.DataFrame([["EFL", 80.0, 1.0], ["Randstrahl im Fokus", None, 1.0],
+                                               ["RMS-Spot", None, 1.0]], columns=MERIT_COLUMNS)
+    at = view(at.run(), "Optimierung")
+    ok(at)
+    at = widget(at, "button", "Optimieren").click().run()
+    ok(at)
+    assert {"R2", "D3"} <= set(table(at, "Ende")["Variable"])
+    at = widget(at, "button", "Ergebnis in die Flächentabelle übernehmen").click().run()
+    ok(at)
+    # Plano-convex lens n = 1.5168 with f = 80 mm: R = f (n - 1) is about 41.3 mm
+    assert at.session_state["bdf"].loc[1, "Radius_mm"] == pytest.approx(41.3, abs=0.2)
+    assert metric(at, "Brennweite EFL") == pytest.approx(80.0, abs=0.01)
+
+
 @pytest.mark.parametrize("name", ["m5/singlet_solve.rtt.json", "m5/singlet_optim.rtt.json", "m5/zoom.rtt.json"])
 @pytest.mark.parametrize("view_name", ["Optimierung", "Reports", "Modell", "Layout"])
 def test_m5_systems_render(rtt_repo, monkeypatch, name, view_name):
