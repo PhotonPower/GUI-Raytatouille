@@ -10,7 +10,7 @@ from raytatouille import analysis as an
 from raytatouille import plot as rtplot
 
 from ..context import AppContext
-from ..ui.common import STRETCH, run, show
+from ..ui.common import STRETCH, run, show, show_result_notes
 
 TITLE = "Spot"
 
@@ -52,6 +52,7 @@ def render(ctx: AppContext) -> None:
                                     color="gray", ls="--", label="Airy-Radius"))
             ax.legend()
         show(fig)
+        show_result_notes(comp, spot, "spot", "spot")
     st.markdown("**Übersicht über alle Felder** (polychromatisch, hexapolar 8)")
     table, overview_errors = [], []
     for i in field_ids:

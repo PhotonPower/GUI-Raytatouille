@@ -10,7 +10,7 @@ from raytatouille import analysis as an
 from raytatouille import plot as rtplot
 
 from ..context import AppContext
-from ..ui.common import run, show
+from ..ui.common import run, show, show_result_notes
 
 TITLE = "OPD / Wellenfront"
 
@@ -46,3 +46,4 @@ def render(ctx: AppContext) -> None:
                 fig, ax = plt.subplots(figsize=(5.5, 5))
                 rtplot.opd_fan(fan, ax)
                 show(fig)
+        show_result_notes(comp, opd, "opd_map", "opd_map")

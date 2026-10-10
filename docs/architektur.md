@@ -33,6 +33,8 @@ flowchart TD
 | `builder` | Flächentabelle zu `.rtt.json`, Vorlagen, deutsche Fehlertexte | nein |
 | `catalogs` | AGF/Coating lesen, Referenzen finden, Kataloge automatisch wählen | nein |
 | `repo`, `colors`, `stretch` | Repo-Suche, Spektralfarben, Streamlit-Breitenschalter | nein |
+| `messages` | Diagnosen mit Code und Flächenname, Tabelle verlorener Strahlen | nein |
+| `model_table` | Modellbaum (`System.root`) als Tabellenzeilen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
 | `drawing`, `rays` | Linsenschnitt zeichnen, freies kollimiertes Bündel | ja |

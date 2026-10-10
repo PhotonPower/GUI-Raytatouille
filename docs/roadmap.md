@@ -8,21 +8,31 @@ Vorschlag, keine Zusage.
 ## Bereits genutzt
 
 - **G1 Strahlpfade:** Strahlen im Layout und die Tabelle verlorener Strahlen.
-- **G2 Geometrie-Export (PR #90):** Linsenschnitt über `raytatouille.layout`, sobald verfügbar.
+- **G2 Geometrie-Export:** Linsenschnitt über `raytatouille.layout` (ab 0.5.0).
+- **G3 Modell lesen:** Ansicht Modell (Flächen, Pfade, Parametertabelle, Konfigurationen).
+- **G5 Prescription:** Ansicht Prescription.
 - **G9 Materialbibliothek:** Katalog-Browser, Glaskarte, Katalog-Alias.
+- **G10 Diagnosen und Ergebnisformat:** Warnungen mit Code und Fläche, Verlusttabellen, JSON-Export.
+- **Multi-Path (0.6.0):** Pfadtransmission, OPL-Differenz und Ghost-Ranking.
 
 ## Bekannte Grenzen
 
-- **Kein Modelleditor (G3):** Der Baukasten erzeugt JSON aus einer Tabelle, es gibt keinen Rückweg
-  vom Modell zur Tabelle, kein Undo und keine Skriptausgabe der Aktionen.
-- **Kein Abbruch, kein Fortschritt (G4):** Große Rechnungen blockieren die Bedienung.
+- **Kein Modelleditor (G3):** Die Bibliothek kann das Modell mit `rt.Editor` ändern (JSON Patch,
+  Undo, Redo); der Explorer liest es nur. Der Baukasten erzeugt weiter JSON aus einer Tabelle.
+- **Kein Abbruch, kein Fortschritt (G4):** Die Bibliothek bietet `cancel=` und `progress=`; der
+  Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
+  darf. Große Rechnungen blockieren die Bedienung.
 - **Kein Footprint, keine automatische freie Öffnung (G6).**
+- **Parametertabelle und Konfigurationen (Schema 0.4)** werden angezeigt, aber nicht ausgewertet; die
+  Bibliothek kann sie in Python noch nicht auflösen.
 - **Keine Optimierung** und keine Mehrpfad-Systeme über das hinaus, was die Bibliothek anbietet.
 - **Streamlit rechnet bei jeder Eingabe neu.** Für sehr große Systeme ist das träge.
-- Ungetestet: Windows, Python 3.10 im Betrieb.
+- Ungetestet: Python 3.10 im Betrieb. Windows ist getestet (siehe [Kompatibilität](kompatibilitaet.md)),
+  läuft aber nicht in der CI.
 
 ## Ideen
 
 - Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
-- Prescription-Report mit Daten aus G5.
-- Hochgeladene Systeme in der Flächentabelle anzeigen, sobald G3 ein Lesen des Modells erlaubt.
+- Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.
+- Abbruchknopf und Fortschrittsbalken über `CancelToken` und `progress=`.
+- Konfigurationen umschalten, sobald die Bibliothek sie in Python auflöst.

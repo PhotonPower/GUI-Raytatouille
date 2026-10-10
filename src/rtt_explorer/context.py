@@ -31,6 +31,8 @@ class AppContext:
     candidates: Candidates
     named: list[tuple[str, str]]  # (candidate label, catalogue name in the system)
     builder_context: dict | None = None  # surface rows and EPD in mode "System bauen"
+    coatings: Any | None = None  # rt.CoatingLibrary of the active coating catalogues, None without
+    system_key: str = ""  # JSON text of the system plus catalogues, a cache key for derived results
     wl_um: list[float] = field(default_factory=list)
     ref_wl: int = 0
     field_ids: list[int] = field(default_factory=list)
