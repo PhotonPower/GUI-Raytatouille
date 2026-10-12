@@ -1,4 +1,5 @@
-"""Pupil point lists typed by the user, and the ray nearest to a point (pure Python, no library).
+"""Pupil point lists typed by the user, the ray nearest to a point and the text of a Jones matrix element
+(pure Python, no library).
 
 Error messages are German because they are shown to the user as they are.
 """
@@ -43,3 +44,10 @@ def parse_pupil_points(text: str) -> tuple[list[float], list[float]]:
 def nearest_index(xs: Sequence[float], ys: Sequence[float], x0: float = 0.0, y0: float = 0.0) -> int:
     """Index of the point (xs[i], ys[i]) closest to (x0, y0), e.g. the chief ray of a free beam."""
     return min(range(len(xs)), key=lambda i: (xs[i] - x0) ** 2 + (ys[i] - y0) ** 2)
+
+
+def jones_text(value: complex) -> str:
+    """A Jones matrix element as amplitude and phase in degree; "–" where the library gives NaN."""
+    if not (math.isfinite(value.real) and math.isfinite(value.imag)):
+        return "–"
+    return f"{abs(value):.4f} ∠ {math.degrees(math.atan2(value.imag, value.real)):.2f}°"

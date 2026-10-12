@@ -11,9 +11,12 @@ import raytatouille as rt
 import streamlit as st
 
 from ..context import AppContext
-from ..ui.common import STRETCH, show
+from ..pupil_points import jones_text, nearest_index
+from ..ui.common import STRETCH, run, show, show_result_notes
 
 TITLE = "Polarisation"
+
+JONES_BASES = {"Doppelpol": "DOUBLE_POLE", "Dipol": "DIPOLE"}
 
 
 def render(ctx: AppContext) -> None:
@@ -143,3 +146,78 @@ def render(ctx: AppContext) -> None:
                 show(fig)
             st.caption("Konventionen (Fresnel, Händigkeit, PRT-Matrix) stehen in docs/architecture.md "
                        "und ADR 0021. Coatings wirken nur, wenn der Coating-Katalog aktiv ist.")
+        if features.jones:
+            _jones(ctx, f, w, aim, psrc, source_vector())
+
+
+def _jones(ctx: AppContext, f: int, w: int, aim, psrc: dict, vec) -> None:
+    """Jones pupil of the library (ADR 0034): diattenuation and physical retardance per pupil point, also
+    for focused beams, and the Stokes map of the chosen polarized source."""
+    st.markdown("**Jones-Pupille** (Bibliothek: Diattenuation und physikalische Retardance, auch für "
+                "fokussierte Strahlen)")
+    an = rt.analysis
+    c1, c2 = st.columns(2)
+    n = c1.slider("Raster (n × n Pupillenpunkte)", 5, 41, 17, step=2, key="jones_grid")
+    basis = JONES_BASES[c2.radio("Ausgangsbasis", list(JONES_BASES), horizontal=True, key="jones_basis",
+                                 help="Doppelpol: singulär nur entgegen dem Hauptstrahl (Vorgabe); "
+                                      "Dipol: Basis nach Lam mit Polen bei ±y′.")]
+    if psrc["free"]:
+        # Start-ray form (also for folded paths): the ray nearest to the beam axis is the chief ray.
+        batch, bx, by = ctx.make_batch(psrc, "Hexapolar", (n - 1) // 2, "yz", f, w, aim)
+        kwargs = {"start": batch, "chief": nearest_index(list(bx), list(by))}
+    else:
+        kwargs = {"field": f, "wavelength": w, "rays": f"grid:{n}", "aiming": aim}
+    jp = run("Jones-Pupille", an.jones_pupil, ctx.comp, ctx.path_choice, basis=getattr(an.JonesBasis, basis),
+             **kwargs)
+    if jp is None:
+        if not psrc["free"]:
+            st.caption("Gefaltete oder gekippte Pfade: Strahlquelle „Kollimiertes Bündel (frei)“ wählen.")
+        return
+    alive = np.asarray(jp.status) == int(rt.trace.RayStatus.ALIVE)
+    if not alive.any():
+        st.warning("Kein Pupillenpunkt erreicht die Bildfläche.")
+        return
+    if psrc["free"]:
+        x, y, xlabel, ylabel = bx, by, "x am Start / mm", "y am Start / mm"
+    else:
+        x, y, xlabel, ylabel = np.asarray(jp.px), np.asarray(jp.py), "px", "py"
+    diat = np.asarray(jp.diattenuation, dtype=float)
+    ret = np.degrees(np.asarray(jp.retardance, dtype=float))
+    m = st.columns(4)
+    m[0].metric("Transmission (unpolarisiert, Ø)", f"{np.nanmean(np.asarray(jp.transmission)[alive]):.4f}")
+    m[1].metric("Diattenuation max", f"{np.nanmax(diat[alive]):.4f}")
+    m[2].metric("Retardance max", f"{np.nanmax(ret[alive]):.3f} °")
+    m[3].metric("Pupillenpunkte", f"{int(alive.sum())}/{len(alive)}")
+    # Fixed colour ranges: an automatic range would show rounding noise of a uniform map as a pattern.
+    tiny = 1e-6
+    panels = [("Diattenuation D", diat, "magma", (0.0, max(float(np.nanmax(diat[alive])), tiny))),
+              ("Retardance (Grad)", ret, "magma", (0.0, max(float(np.nanmax(ret[alive])), tiny)))]
+    if vec is not None:
+        stokes = run("Stokes-Karte", an.stokes_pupil, jp, complex(vec[0]), complex(vec[1]))
+        if stokes is not None:
+            s0 = np.asarray(stokes.s0, dtype=float)
+            s0 = np.where(s0 > 0, s0, np.nan)
+            panels += [("Zirkularität S₃ / S₀ am Ausgang", np.asarray(stokes.s3) / s0, "coolwarm", (-1.0, 1.0)),
+                       ("Orientierung der Ellipse (Grad)", np.degrees(np.asarray(stokes.orientation)), "twilight",
+                        (0.0, 180.0))]
+    cols = st.columns(2)
+    for k, (title, values, cmap_name, (vmin, vmax)) in enumerate(panels):
+        with cols[k % 2]:
+            fig, ax = plt.subplots(figsize=(5, 4.3))
+            mask = alive & np.isfinite(values)
+            sc = ax.scatter(x[mask], y[mask], c=values[mask], s=26, cmap=cmap_name, vmin=vmin, vmax=vmax)
+            fig.colorbar(sc, ax=ax, format="%.5g")
+            ax.set_aspect("equal")
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            ax.set_title(title)
+            show(fig)
+    centre = nearest_index(list(jp.px), list(jp.py)) if not psrc["free"] else kwargs["chief"]
+    j = np.asarray(jp.j)[centre]
+    st.markdown("**Jones-Matrix am Hauptstrahl** (Zeilen: Ausgang x′, y′; Spalten: Eingang x, y)")
+    st.dataframe(pd.DataFrame([[jones_text(v) for v in row] for row in j], index=["x′", "y′"],
+                              columns=["x", "y"]), **STRETCH)
+    st.caption("J = exp(−2πi·w·λ_ref/λ)·Bᵀ_aus·P·B_ein der Bibliothek; Eingangsbasis am Hauptstrahl x_in, y_in. "
+               "Die Stokes-Karte nimmt die gewählte Quelle in dieser Basis.")
+    show_result_notes(ctx.comp, jp, "jones_pupil", "jones_pupil")
+
