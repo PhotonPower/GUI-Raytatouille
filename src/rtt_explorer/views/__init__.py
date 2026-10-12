@@ -8,6 +8,7 @@ from ..context import AppContext
 from . import (
     bundle,
     colour,
+    diffraction,
     distortion,
     layout,
     materials,
@@ -24,8 +25,8 @@ from . import (
     system_file,
 )
 
-_MODULES = [layout, spot, ray_fans, opd, distortion, colour, seidel, prescription, bundle, paths, polar,
-            optimization, reports, materials, model, system_file]
+_MODULES = [layout, spot, ray_fans, opd, diffraction, distortion, colour, seidel, prescription, bundle, paths,
+            polar, optimization, reports, materials, model, system_file]
 
 # Title shown in the view selector -> render function (insertion order = display order).
 VIEWS: dict[str, Callable[[AppContext], None]] = {m.TITLE: m.render for m in _MODULES}
