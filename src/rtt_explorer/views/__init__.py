@@ -13,17 +13,19 @@ from . import (
     materials,
     model,
     opd,
+    optimization,
     paths,
     polar,
     prescription,
     ray_fans,
+    reports,
     seidel,
     spot,
     system_file,
 )
 
 _MODULES = [layout, spot, ray_fans, opd, distortion, colour, seidel, prescription, bundle, paths, polar,
-            materials, model, system_file]
+            optimization, reports, materials, model, system_file]
 
 # Title shown in the view selector -> render function (insertion order = display order).
 VIEWS: dict[str, Callable[[AppContext], None]] = {m.TITLE: m.render for m in _MODULES}

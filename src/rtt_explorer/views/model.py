@@ -45,8 +45,9 @@ def render(ctx: AppContext) -> None:
     if params or configs:
         st.markdown("**Parametertabelle**" + (f" (Konfigurationen: {', '.join(configs)})" if configs else ""))
         st.dataframe(pd.DataFrame([_parameter_row(r, configs) for r in params]), hide_index=True, **STRETCH)
-        st.caption("Die Bibliothek liest Parametertabelle und Konfigurationen (Schema 0.4), wertet sie in "
-                   "Python aber noch nicht aus; gebundene Werte lassen sich daher noch nicht kompilieren.")
+        if not ctx.features.configs:
+            st.caption("Diese Bibliotheksversion liest Parametertabelle und Konfigurationen (Schema 0.4), wertet "
+                       "sie aber noch nicht aus (ab 0.7).")
     st.caption("Nur lesen: Geändert wird das System im Baukasten oder in der Datei. Modell aus "
                "`System.root`, `System.paths` und `System.parameters` der Bibliothek.")
 

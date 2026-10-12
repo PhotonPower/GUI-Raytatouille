@@ -13,6 +13,9 @@ Einheiten: Längen in mm, Wellenlängen in µm, Felder in Grad. Die optische Ach
   Dateien (zwei `schott.agf`) werden mit Alias geladen (`SCHOTT`, `SCHOTT_2`), sofern die
   Bibliothek das kann.
 - **Pfad:** erscheint nur bei Systemen mit mehreren optischen Pfaden.
+- **Konfiguration:** erscheint nur bei Systemen mit Konfigurationen (Parametertabelle, z. B.
+  `m5/zoom`). Kompiliert wird die gewählte Spalte; die Kopfzeile nennt sie. Alle Ansichten rechnen mit
+  ihr, die Optimierung dagegen mit allen Konfigurationen, die ihre Merit-Funktion nennt.
 
 ## Systemquellen
 
@@ -71,7 +74,8 @@ z-Position, Brechzahl danach und Lagrange-Invariante; darüber Baulänge, Objekt
 Arbeitsblende 1/(2|n′u′|) und Bild-NA |n′u′|. Ein Diagramm zeigt die Strahlhöhen über z. Nur für
 rotationssymmetrische Pfade; ohne Blende bleiben die Strahlspalten leer.
 
-**Strahlenbündel:** Pupillenraster hexapolar, Gitter oder Zufall (fester Seed), Statustabelle,
+**Strahlenbündel:** Pupillenraster hexapolar, Gitter, Zufall (fester Seed) oder Gauß-Quadratur
+(Ringe × 6 Arme; die Gewichte der Bibliothek stehen in der CSV), Statustabelle,
 Auftreffpunkte und CSV-Export.
 
 **Pfade & Ghosts:** Strahlquelle wie im Layout (Pupille oder freies Bündel).
@@ -90,6 +94,26 @@ Transmission je Wellenlänge. Retardance ist nur für Strahlen definiert, die in
 Einfallsrichtung austreten (Platten, Wellenplatten, ideale Elemente). Konventionen stehen in
 `docs/architecture.md` der Bibliothek (ADR 0021).
 
+**Optimierung:** für Systeme mit Variablen (`"variable": true`) und einem Abschnitt
+`optimization` (z. B. `m5/singlet_solve`, `m5/two_lens_gap`).
+- Oben die Merit-Funktion: Operanden mit Ziel, Gewicht und Startwert, Generatoren (RMS-Spot oder
+  RMS-Wellenfront mit Gauß-Abtastung) mit Start-RMS, darunter die Variablen mit Grenzen.
+- „Optimieren“ startet den Levenberg-Marquardt-Optimierer der Bibliothek auf einer Kopie; die Optionen
+  (Iterationen, ftol, xtol) stehen im Aufklapper. Danach: Status, Verlauf der normierten
+  Merit-Funktion φ, Variablen vorher/nachher (an der Grenze markiert), Beiträge der Operanden und
+  Generatoren.
+- „Ergebnis übernehmen“ macht das optimierte System in allen Ansichten aktiv, bis „Verwerfen“ gedrückt
+  oder die Quelle gewechselt wird. Speichern als `.rtt.json`, als JSON Patch oder als Ergebnis-JSON.
+- Große Strafgewichte auf Gleichheitsbedingungen (z. B. EFL mit Gewicht 10⁴ in `m5/singlet_optim`)
+  lassen den Optimierer früh stehen bleiben; besser die Bedingung über die Parametertabelle halten.
+
+**Reports:** drei Reiter mit Tabellen der Bibliothek, jeweils als CSV und JSON.
+- *Abmessungen:* je Glassegment Mittendicke, Halbdurchmesser und Apertur beider Flächen, Randdicke und
+  Durchmesser.
+- *Systemdaten:* Wellenlängen, Blende, Flächen und paraxiale Daten des Pfads als Schlüssel und Wert.
+- *Raytrace:* ein y-Fächer (Strahlquelle wie im Layout) mit globalen und lokalen Koordinaten, Weg,
+  Gewicht und Status je Ereignis.
+
 **Materialien:** Katalogtabelle mit Suche und Filtern, Glaskarte (n_d über ν_d), Details und innere
 Transmission, Dispersionskurven und Abbe-Zahl. Absolute Brechzahlen beziehen sich auf Systemtemperatur
 und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher leicht ab.
@@ -99,4 +123,5 @@ Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Ele
 Wechselwirkung, Phase), die Pfade mit ihren Ereignissen sowie Parametertabelle und
 Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Nur lesen.
 
-**System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`.
+**System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`; bei Konfigurationen
+auch die gewählte Konfiguration mit festen Werten.

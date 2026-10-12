@@ -4,9 +4,22 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 
 ## [Unreleased]
 
-Angepasst an Raytatouille 0.6.0 (`main`, Commit `9dab188`).
+Angepasst an Raytatouille 0.7.0 (Tag `v0.7.0`, Commit `41fff00`).
 
-### Hinzugefügt
+### Hinzugefügt (0.7.0)
+- **Konfigurationen:** Auswahl in der Seitenleiste für Systeme mit Parametertabelle (z. B. `m5/zoom`);
+  kompiliert die gewählte Spalte, auch für die Ghost-Analyse. Die Ansicht System-Datei speichert die
+  Konfiguration mit festen Werten (`System.resolved`).
+- Ansicht **Optimierung** (M5): Merit-Funktion mit Startwerten, Variablen mit Grenzen, Optionen des
+  Levenberg-Marquardt-Optimierers, Lauf mit Status, Verlauf, Variablen vorher/nachher und Beiträgen;
+  Ergebnis übernehmen (alle Ansichten zeigen dann das optimierte System), als `.rtt.json`, JSON Patch
+  oder Ergebnis-JSON speichern.
+- Ansicht **Reports**: Abmessungen (Mitten- und Randdicke, Durchmesser), Systemdaten und Raytrace mit
+  lokalen Koordinaten, jeweils als CSV und JSON.
+- Strahlenbündel: Pupillenraster „Gauß-Quadratur“ mit den Quadraturgewichten in der CSV.
+- Funktionsflags `configs`, `optim`, `reports` und `gauss`.
+
+### Hinzugefügt (0.6.0)
 - Ansicht **Prescription** (G5): paraxialer Rand- und Hauptstrahl je Fläche, Baulänge, Arbeitsblende,
   Bild-NA und Lagrange-Invariante; Export als CSV und JSON.
 - Ansicht **Pfade & Ghosts**: Transmission je Pfad, optische Wegdifferenz zweier Pfade (z. B.
