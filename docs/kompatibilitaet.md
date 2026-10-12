@@ -23,11 +23,16 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `optim` | `raytatouille.optim.optimize` | Ansicht Optimierung zeigt nur einen Hinweis | ab 0.7.0 (#167–#170) |
 | `reports` | `analysis.dimension_report`, `analysis.raytrace_report` | Ansicht Reports zeigt nur einen Hinweis | ab 0.7.0 (#177) |
 | `gauss` | `trace.GaussPupil`, `trace.gauss_pupil_weights` | Kein Raster „Gauß-Quadratur“ im Strahlenbündel | ab 0.7.0 (#168) |
+| `wavefront` | `analysis.pupil_function`, `analysis.zernike_fit` | OPD ohne Fokusverschiebung und Zernike-Fit; Strehl als Näherung der Oberfläche | ab 0.8.0 (#202, #203, #209) |
+| `diffraction` | `analysis.psf`, `mtf`, `encircled_energy`, `through_focus` | Ansicht Beugung zeigt nur einen Hinweis | ab 0.8.0 (#205, #206, #209) |
 
 ## Getestet
 
 Windows 11, Python 3.12, Streamlit 1.65, Bibliothek mit MSVC und vcpkg gebaut:
 
+- 2026-10-12, Raytatouille `v0.8.0` (Commit `451ab4c`): alle Tests grün; alle Flags vorhanden.
+- 2026-10-12, Raytatouille `v0.7.0` mit den Referenzsystemen und Katalogen von `v0.7.0`: alle Tests
+  grün, die 0.8-Tests werden übersprungen; ohne `wavefront` und `diffraction`.
 - 2026-10-10, Raytatouille `v0.7.0` (Commit `41fff00`): alle Tests grün; alle Flags vorhanden.
 - 2026-10-09, Raytatouille `main` (0.6.0, Commit `9dab188`): alle Tests grün; ohne `configs`, `optim`,
   `reports` und `gauss`.

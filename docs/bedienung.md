@@ -73,14 +73,32 @@ Startebene, Neigung), das auch Systeme ohne Blende zeigt. Der Zoom auf die Bilde
 Bereich davor aus.
 
 **Spot:** RMS um Schwerpunkt und Hauptstrahl, GEO-Radius, angekommene Strahlen. Der Airy-Radius
-(1,22·λ·f/#) ist nur ein grober Vergleichswert.
+1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
+Bibliothek und gilt auch für ein Objekt im Endlichen (ohne Prescription, vor 0.6: |EFL|/EPD).
 
-**OPD / Wellenfront:** RMS und PV in Wellen; Strehl nach Maréchal, exp(−(2π·RMS)²), gilt für kleine
-Fehler.
+**OPD / Wellenfront:** RMS und PV in Wellen. Ab Raytatouille 0.8 verschiebt **Fokusverschiebung (mm)**
+die Referenzkugel entlang des Hauptstrahls; dazu kommen σ um den besten Fokus (ohne Z1 bis Z4) und
+die Strehlzahl nach Maréchal aus dem Zernike-Fit der Bibliothek, exp(−(2π·σ_bf·λ_ref/λ)²), gut bis
+etwa 0,1. Der Aufklapper **Zernike-Koeffizienten (Noll)** listet 15, 37 oder 66 Terme mit Namen, als
+CSV und JSON. Ältere Bibliotheken zeigen die Näherung exp(−(2π·RMS·λ_ref/λ)²) der Oberfläche.
+
+**Beugung** (ab 0.8): Beugungsrechnung der Bibliothek aus der Pupillenfunktion für ein Feld, eine
+Wellenlänge oder polychromatisch (Gewichte aus dem System), mit Pupillengitter 32, 64 oder 128 und
+Fokusverschiebung. Auswertungen:
+- **PSF:** Bild linear oder logarithmisch mit Ausschnitt in Airy-Radien, Schnitte entlang x und y,
+  Strehlzahl am Referenzpunkt C′.
+- **MTF:** tangential und sagittal über der Ortsfrequenz in Linienpaaren pro mm, als CSV.
+- **Eingeschlossene Energie:** Kurve bis zum größten Radius, den die Bibliothek zulässt, mit den
+  Radien für 50, 80 und 90 %; Mittelpunkt C′ oder der Punkt der linearen Phase (folgt einer Kippung).
+- **Through-Focus:** Strehlzahl über der Fokusverschiebung, monochromatisch; der Bereich in
+  Vielfachen der Rayleigh-Tiefe 2·λ·N_w² (Näherung, grau hinterlegt).
+
+Feine Gitter rechnen etwa (π/4)·N² Strahlen je Wellenlänge; Systeme mit afokalem Bildraum liefern
+keine PSF und keine MTF.
 
 **Seidel:** Summen S_I bis S_V, C_L, C_T und Beiträge je Fläche; W040 = S_I/8 in Wellen.
 
-Spot, Ray Fans und OPD zeigen Warnungen der Bibliothek mit Fläche und Diagnosecode (z. B.
+Spot, Ray Fans, OPD und Beugung zeigen Warnungen der Bibliothek mit Fläche und Diagnosecode (z. B.
 `rays.lost`, `stop.clips_beam`), einen Aufklapper mit den verlorenen Strahlen je Status und der Fläche
 mit den meisten Verlusten sowie den Knopf **Ergebnis als JSON** (Format `raytatouille-result`, lesbar
 mit `rt.results.load_json`).
