@@ -13,6 +13,15 @@ Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter 
 - OPD / Wellenfront: Fokusverschiebung der Referenzkugel, σ um den besten Fokus, Strehlzahl und
   Zernike-Koeffizienten (Noll, mit Namen) aus dem Zernike-Fit der Bibliothek.
 - Funktionsflags `wavefront` und `diffraction`.
+- **Ideale Linse:** Modell zeigt Brennweite, Objektabstand und Zylinderachse; das Layout zeichnet ein
+  Linsensymbol; im Baukasten der Zeilentyp „Ideallinse“ (Brennweite in der Radius-Spalte, als Variable
+  optimierbar, Schema 0.5.0).
+- Polarisation: **Jones-Pupille** der Bibliothek mit Diattenuation, physikalischer Retardance (auch für
+  fokussierte Strahlen), Jones-Matrix am Hauptstrahl und Stokes-Karte für polarisierte Quellen; mit
+  dem freien Bündel auch für gefaltete Systeme.
+- Pfade & Ghosts: **Interferogramm** zweier Pfade mit Streifen, Intensität, Streifenzahl und Scherung.
+- Strahlenbündel: Pupillenraster **Punktliste** (px, py je Zeile).
+- Funktionsflags `ideal_lens`, `jones`, `interferogram` und `point_list`.
 
 ### Geändert (0.8.0)
 - OPD / Wellenfront: Die Strehlzahl kommt aus der Bibliothek statt aus der eigenen Maréchal-Formel.

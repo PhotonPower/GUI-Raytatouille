@@ -37,6 +37,7 @@ flowchart TD
 | `model_table` | Modellbaum (`System.root`) als Tabellenzeilen | nein |
 | `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
+| `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
 | `drawing`, `rays` | Linsenschnitt zeichnen, freies kollimiertes Bündel | ja |
@@ -60,6 +61,8 @@ flowchart TD
 - Widget-Schlüssel der Wellenfront- und Beugungsansicht: `opd_focus`, `opd_terms` und `diff_*`
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
+- Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
+  Ghosts), `bundle_points` (Strahlenbündel).
 - Widget-Schlüssel der Katalogauswahl enthalten Quelle und Referenzen, damit die Vorauswahl bei
   einem Systemwechsel neu berechnet wird.
 

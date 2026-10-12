@@ -17,7 +17,8 @@ Vorschlag, keine Zusage.
 - **Optimierung (0.7.0):** Merit-Funktion aus der Datei, Lauf, Ergebnis übernehmen; Konfigurationen,
   Reports (R1) und Gauß-Pupille.
 - **Beugung (0.8.0, M6):** PSF, MTF, eingeschlossene Energie, Strehlzahl durch den Fokus; Zernike-Fit
-  und Fokusverschiebung in der Wellenfront.
+  und Fokusverschiebung in der Wellenfront; ideale Linse (Modell, Layout, Baukasten), Jones-Pupille
+  und Stokes-Karte, Interferogramm zweier Pfade, Pupillenpunkte als Liste.
 
 ## Bekannte Grenzen
 
@@ -38,8 +39,8 @@ Vorschlag, keine Zusage.
 ## Ideen
 
 - Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
-- Weitere Funktionen von 0.8.0: ideale Linse in Modell, Layout und Baukasten, Jones-Pupille und
-  Stokes-Karte, Interferogramm zweier Pfade, Pupillenpunkte als Liste.
+- Eingeschlossene Energie mit einem Aufruf, sobald die Bibliothek `radius_max` vorab liefert
+  (Raytatouille #267).
 - Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.
 - Abbruchknopf und Fortschrittsbalken über `CancelToken` und `progress=`.
 - Merit-Funktion und Variablen geladener Dateien in der Oberfläche bearbeiten (über `rt.Editor`);
