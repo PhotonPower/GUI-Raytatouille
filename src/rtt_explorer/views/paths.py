@@ -10,7 +10,7 @@ import streamlit as st
 
 from ..context import AppContext
 from ..rays import collimated_batch
-from ..ui.common import STRETCH, diagnostic_line, fmt, run, show
+from ..ui.common import STRETCH, diagnostic_line, fmt, run, show, show_result_notes
 
 TITLE = "Pfade & Ghosts"
 
@@ -28,17 +28,20 @@ def render(ctx: AppContext) -> None:
     rings = c3.slider("Ringe (hexapolar)", 1, 12, 4, key="paths_rings")
     src = ctx.source_ui("paths")
 
-    def start_kwargs() -> tuple[dict, np.ndarray | None, np.ndarray | None]:
-        """Keyword arguments for the start rays and the start coordinates for plots (free beam)."""
+    def start_kwargs(n: int) -> tuple[dict, np.ndarray | None, np.ndarray | None]:
+        """Keyword arguments for `n` hexapolar rings of start rays and the start coordinates for plots
+        (free beam)."""
         if src["free"]:
-            batch = collimated_batch("Hexapolar", rings, "yz", src["radius"], src["z0"], src["tx"], src["ty"], w)
+            batch = collimated_batch("Hexapolar", n, "yz", src["radius"], src["z0"], src["tx"], src["ty"], w)
             return {"start": batch}, np.asarray(batch.pos_x), np.asarray(batch.pos_y)
-        return {"field": f, "wavelength": w, "rays": f"hexapolar:{rings}"}, None, None
+        return {"field": f, "wavelength": w, "rays": f"hexapolar:{n}"}, None, None
 
-    kwargs, start_x, start_y = start_kwargs()
+    kwargs, start_x, start_y = start_kwargs(rings)
     _transmission_table(comp, kwargs)
     if len(comp.path_names) >= 2:
-        _opl_difference(ctx, kwargs, start_x, start_y, w)
+        pair = _opl_difference(ctx, kwargs, start_x, start_y, w)
+        if pair is not None and ctx.features.interferogram:
+            _interferogram(ctx, pair, start_kwargs, w)
     _ghosts(ctx, f, w, rings)
 
 
@@ -76,7 +79,8 @@ def _transmission_table(comp, kwargs: dict) -> None:
                 st.write("- " + text)
 
 
-def _opl_difference(ctx: AppContext, kwargs: dict, start_x, start_y, w: int) -> None:
+def _opl_difference(ctx: AppContext, kwargs: dict, start_x, start_y, w: int) -> tuple[str, str] | None:
+    """OPL difference of two chosen paths; returns the pair (path a, path b), None without a valid pair."""
     comp = ctx.comp
     st.markdown("**Optische Wegdifferenz zweier Pfade** (OPL_b − OPL_a auf der gemeinsamen Bildfläche)")
     names = list(comp.path_names)
@@ -85,10 +89,10 @@ def _opl_difference(ctx: AppContext, kwargs: dict, start_x, start_y, w: int) -> 
     path_b = b.selectbox("Pfad b", names, index=1, key="opl_b")
     if path_a == path_b:
         st.caption("Zwei verschiedene Pfade wählen.")
-        return
+        return None
     d = run("OPL-Differenz", rt.analysis.opl_difference, comp, path_a, path_b, **kwargs)
     if d is None:
-        return
+        return None
     pts = d.points
     alive = np.asarray(pts.status) == int(rt.trace.RayStatus.ALIVE)
     delta = np.asarray(pts.delta, dtype=float)
@@ -111,6 +115,49 @@ def _opl_difference(ctx: AppContext, kwargs: dict, start_x, start_y, w: int) -> 
         show(fig)
     for text in sorted(set(diagnostic_line(comp, x) for x in d.warnings)):
         st.warning(text)
+    return path_a, path_b
+
+
+def _interferogram(ctx: AppContext, pair: tuple[str, str], start_kwargs, w: int) -> None:
+    comp = ctx.comp
+    path_a, path_b = pair
+    st.markdown(f"**Interferogramm** von {path_a} und {path_b} (skalare Zweistrahl-Interferenz auf der Bildfläche)")
+    n = st.slider("Ringe für das Interferogramm (hexapolar)", 4, 40, 16, key="fringe_rings",
+                  help="Feiner aufgelöste Streifen brauchen mehr Strahlen.")
+    kwargs, _, _ = start_kwargs(n)
+    g = run("Interferogramm", rt.analysis.interferogram, comp, path_a, path_b, **kwargs)
+    if g is None:
+        return
+    pts = g.points
+    both = np.asarray(pts.arrival) == int(rt.analysis.InterferogramArrival.BOTH)
+    waves = np.asarray(pts.waves, dtype=float)[both]
+    m = st.columns(4)
+    m[0].metric("Punkte auf beiden Pfaden", f"{int(both.sum())}/{len(both)}")
+    m[1].metric("Streifen über die Fläche", fmt(float(np.ptp(waves)), 2) if both.any() else "–",
+                help="Spannweite von Δ/λ über die Punkte, die auf beiden Pfaden ankommen.")
+    m[2].metric("mittlere Wegdifferenz", f"{fmt(float(waves.mean()), 3)} λ" if both.any() else "–")
+    m[3].metric("größte Scherung", f"{1000 * g.max_shear:.3f} µm",
+                help="Abstand der Auftreffpunkte beider Pfade; die Welle von b wird linear dorthin übertragen.")
+    if both.any():
+        x, y = np.asarray(pts.x, dtype=float), np.asarray(pts.y, dtype=float)
+        a, b = st.columns(2)
+        intensity = np.asarray(pts.intensity, dtype=float)
+        # Fixed colour ranges: an automatic range would blow rounding noise of a uniform field up into fringes.
+        for col, values, title, cmap, vmax in (
+                (a, np.asarray(pts.fringe), "Streifen 1 + cos φ", "gray", 2.0),
+                (b, intensity, "Intensität (Gewichte)", "viridis", max(float(intensity[both].max()), 1e-12))):
+            with col:
+                fig, ax = plt.subplots(figsize=(5.2, 4.4))
+                sc = ax.scatter(x[both], y[both], c=values[both], s=12, cmap=cmap, vmin=0.0, vmax=vmax)
+                fig.colorbar(sc, ax=ax)
+                ax.set_aspect("equal", adjustable="datalim")
+                ax.set_xlabel("x / mm (Bildfläche, lokal)")
+                ax.set_ylabel("y / mm")
+                ax.set_title(title)
+                show(fig)
+    st.caption(f"Phase nur aus dem optischen Weg bei λ = {ctx.wl_um[w]:.4f} µm, gleiche Polarisation angenommen; "
+               "Phasen von Metallspiegeln oder Coatings fehlen (Bibliothek, #210).")
+    show_result_notes(comp, g, "interferogram", "interferogram")
 
 
 @st.cache_resource(show_spinner="Ghost-Pfade werden kompiliert …", max_entries=4)
