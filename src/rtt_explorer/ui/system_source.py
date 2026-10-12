@@ -14,6 +14,7 @@ from ..builder import (
     MERIT_OPERANDS,
     MIN_THICKNESS,
     PRESETS,
+    ROW_TYPES,
     VARIABLE_COLUMNS,
     build_system_dict,
     surface_rows,
@@ -65,12 +66,13 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
             name = st.text_input("Name", value=preset)
             epd = st.number_input("Eintrittspupillendurchmesser EPD (mm)", value=20.0, min_value=0.01)
             st.markdown("**Flächentabelle** (z-Position ergibt sich aus der Summe der Dicken)")
+            row_types = [t for t in ROW_TYPES if t != "Ideallinse" or FEATURES.ideal_lens]
             edited = st.data_editor(
                 ss.bdf, key=f"bed_{ss.bver}", num_rows="dynamic", **STRETCH,
                 column_config={
-                    "Typ": st.column_config.SelectboxColumn("Typ", options=["Fläche", "Blende", "Bild"],
-                                                            required=True),
-                    "Radius_mm": st.column_config.NumberColumn("Radius (mm, 0 = plan)", format="%.4f"),
+                    "Typ": st.column_config.SelectboxColumn("Typ", options=row_types, required=True),
+                    "Radius_mm": st.column_config.NumberColumn(
+                        "Radius (mm, 0 = plan)", format="%.4f", help="Bei einer Ideallinse die Brennweite f (mm)."),
                     "Konik": st.column_config.NumberColumn("Konik k", format="%.4f"),
                     "Dicke_mm": st.column_config.NumberColumn("Dicke bis nächste Zeile (mm)", format="%.4f"),
                     "Material_danach": st.column_config.TextColumn(
@@ -88,7 +90,9 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
             st.caption("Radiusvorzeichen: positiv, wenn der Krümmungsmittelpunkt bei +z liegt. "
                        "Glas steht in der Zeile der ersten Linsenfläche; die Fläche, die wieder in "
                        "Luft führt, schließt die Linse ab. Aufeinanderfolgende Gläser ergeben ein "
-                       "verkittetes Element.")
+                       "verkittetes Element." + (" Eine Zeile vom Typ Ideallinse ist eine dünne ideale Linse in "
+                                                  "Luft mit der Brennweite in der Radius-Spalte."
+                                                  if FEATURES.ideal_lens else ""))
             glass_options = ss.get("glass_options", [])
             if glass_options:
                 with st.expander("Glas aus einem aktiven Katalog in die Tabelle eintragen"):

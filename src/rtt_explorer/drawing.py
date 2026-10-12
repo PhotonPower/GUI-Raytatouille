@@ -167,3 +167,7 @@ def draw_builder_sketch(rows: list[dict], epd: float, ax) -> None:
                 ax.plot([r["z"], r["z"]], [sign * h, sign * 1.5 * h], "k-", lw=3)
         if r["typ"] == "Bild":
             ax.plot([r["z"], r["z"]], [-default_h, default_h], "-", color="tab:red", lw=2)
+        if r["typ"] == "Ideallinse":
+            h = heights[idx]
+            draw_ideal_lens(ax, (r["z"], h), (r["z"], -h), {"cylinder": False, "f": r["radius"], "axis_deg": 0.0},
+                            "yz")

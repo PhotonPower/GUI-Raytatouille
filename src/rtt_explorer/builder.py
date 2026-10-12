@@ -28,6 +28,8 @@ MERIT_OPERANDS = {
     "RMS-Wellenfront": ("generator", {"type": "rms_wavefront"}, False),
 }
 MIN_THICKNESS = 0.01  # lower bound of a variable thickness, mm
+# Row types; an Ideallinse row is a thin element with an ideal lens (library 0.8), its focal length in Radius_mm.
+ROW_TYPES = ("Fläche", "Blende", "Ideallinse", "Bild")
 _VARIABLE_ROW = re.compile(r"^([RKD])(\d+)$")
 _VARIABLE_TARGET = {"R": "Radius_mm", "K": "Konik", "D": "Dicke_mm"}
 
@@ -79,8 +81,8 @@ def surface_rows(df: pd.DataFrame) -> list[dict]:
     rows, z = [], 0.0
     for i, r in enumerate(df.to_dict("records")):
         typ = r.get("Typ")
-        if typ not in ("Fläche", "Blende", "Bild"):
-            raise ValueError(f"Zeile {i + 1}: Typ muss Fläche, Blende oder Bild sein.")
+        if typ not in ROW_TYPES:
+            raise ValueError(f"Zeile {i + 1}: Typ muss Fläche, Blende, Ideallinse oder Bild sein.")
         coating = r.get("Coating")
         row = {
             "i": i, "typ": typ, "radius": num(r.get("Radius_mm")), "conic": num(r.get("Konik")),
@@ -148,7 +150,8 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
 
     Without variables and merit table this is schema 0.2.0. With them (schema 0.4.0) every variable
     becomes a row of the parameter table, named R<n>, K<n> or D<n> after the quantity and table row,
-    and positions behind a variable thickness become expression rows (Z<n>, Z<n>REL)."""
+    and positions behind a variable thickness become expression rows (Z<n>, Z<n>REL). Rows of type Ideallinse become
+    thin elements IL<n> with an ideal lens (schema 0.5.0); their focal length is in the radius column."""
     if not rows or rows[-1]["typ"] != "Bild" or sum(r["typ"] == "Bild" for r in rows) != 1:
         raise ValueError("Die letzte Zeile muss genau eine Bildzeile (Typ 'Bild') sein.")
     if sum(r["typ"] == "Blende" for r in rows) > 1:
@@ -245,10 +248,32 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
         z = position(0, row["i"], row["z"], f"Z{row['i'] + 1}")
         return {"pose": {"position": [0.0, 0.0, z]}} if z != 0.0 else {}
 
-    children, lens_no, i = [], 0, 0
+    def ideal_lens(row) -> dict:
+        n = row["i"] + 1
+        if row["radius"] == 0.0:
+            raise ValueError(f"Zeile {n}: Die Ideallinse braucht eine Brennweite ≠ 0 (Spalte Radius).")
+        if not is_air(row["mat"]) or (row["i"] > 0 and not is_air(rows[row["i"] - 1]["mat"])):
+            raise ValueError(f"Zeile {n}: Die Ideallinse muss in Luft stehen (Material davor und danach AIR).")
+        if row["conic"] != 0.0 or row["k_var"]:
+            raise ValueError(f"Zeile {n}: Eine Ideallinse hat keine Konik; Spalte Konik leer lassen.")
+        if row["coating"]:
+            raise ValueError(f"Zeile {n}: Eine Ideallinse hat kein Coating.")
+        surface = {"id": row["id"]}
+        if row["sd"] > 0:
+            surface["aperture"] = {"type": "circular", "radius": row["sd"]}
+        focal_length = variable("R", row, row["radius"]) if row["r_var"] else row["radius"]
+        surface["interaction"] = {"type": "ideal_lens", "focal_length": focal_length}
+        return {"type": "thin_element", "name": row["id"], **pose(row), "surfaces": [surface]}
+
+    children, lens_no, ideal_no, i = [], 0, 0, 0
     while i < len(rows):
         row = rows[i]
-        if row["typ"] == "Blende":
+        if row["typ"] == "Ideallinse":
+            ideal_no += 1
+            row["id"] = f"IL{ideal_no}"
+            children.append(ideal_lens(row))
+            i += 1
+        elif row["typ"] == "Blende":
             if i > 0 and not is_air(rows[i - 1]["mat"]):
                 raise ValueError(f"Zeile {i + 1}: Die Blende muss in Luft liegen, nicht im Glas.")
             if not row["sd"] > 0:
@@ -308,4 +333,6 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
             system["parameters"] = value_rows + expression_rows
         if optimization:
             system["optimization"] = optimization
+    if ideal_no:
+        system["schema_version"] = "0.5.0"  # the ideal lens exists from schema 0.5.0 on
     return system
