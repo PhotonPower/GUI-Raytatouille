@@ -52,6 +52,20 @@ class AppContext:
         return (abs(fo.efl) / epd) if fo is not None and epd and fo.efl else None
 
     @property
+    def working_fnum(self) -> float | None:
+        """Paraxial working f-number 1 / (2 |n'u'|) of the library, also for finite conjugates.
+
+        Without paraxial.prescription (before 0.6) the infinite-conjugate |EFL| / EPD; None if the
+        path has no prescription (folded, crystal, diffraction order != 0).
+        """
+        if not self.features.prescription:
+            return self.fnum
+        try:
+            return rt.paraxial.prescription(self.comp, path=self.path_choice).paraxial_working_f_number
+        except (rt.RaytatouilleError, ValueError):
+            return None
+
+    @property
     def aim_map(self) -> dict:
         return {"Real": rt.trace.Aiming.REAL, "Paraxial": rt.trace.Aiming.PARAXIAL}
 
