@@ -9,9 +9,13 @@ import raytatouille as rt
 import streamlit as st
 
 from ..context import AppContext
+from ..pupil_points import parse_pupil_points
 from ..ui.common import run, show
 
 TITLE = "Strahlenbündel"
+
+POINT_LIST = "Punktliste (px, py)"
+POINT_LIST_DEFAULT = "0, 0\n0, 0.5\n0, 1\n0.5, 0\n1, 0"
 
 
 def render(ctx: AppContext) -> None:
@@ -34,13 +38,27 @@ def render(ctx: AppContext) -> None:
     kinds = ["Hexapolar (Ringe)", "Gitter (n × n)", "Zufall (Anzahl)"]
     if ctx.features.gauss:
         kinds.append("Gauß-Quadratur (Ringe × 6 Arme)")
+    if ctx.features.point_list:
+        kinds.append(POINT_LIST)
     kind = c3.selectbox("Pupillenraster", kinds)
-    n = c4.slider("Größe", 1, 40 if kind != "Zufall (Anzahl)" else 2000, 8 if kind != "Zufall (Anzahl)" else 300)
+    if kind == POINT_LIST:
+        n = 0
+        text = st.text_area("Pupillenpunkte (eine Zeile je Punkt: px, py)", POINT_LIST_DEFAULT, key="bundle_points",
+                            help="Normierte Pupillenkoordinaten in dieser Reihenfolge; Punkte außerhalb des "
+                                 "Einheitskreises sind erlaubt. Zeilen mit # werden übersprungen.")
+        try:
+            px, py = parse_pupil_points(text)
+        except ValueError as error:
+            st.error(str(error))
+            return
+    else:
+        n = c4.slider("Größe", 1, 40 if kind != "Zufall (Anzahl)" else 2000, 8 if kind != "Zufall (Anzahl)" else 300)
     aim = aim_map[st.radio("Aiming", list(aim_map), horizontal=True, key="aim_trace")]
     sampling = {"Hexapolar (Ringe)": lambda: rt.trace.HexapolarPupil(rings=n),
                 "Gitter (n × n)": lambda: rt.trace.GridPupil(n=n),
                 "Zufall (Anzahl)": lambda: rt.trace.RandomPupil(count=n, seed=1),
-                "Gauß-Quadratur (Ringe × 6 Arme)": lambda: rt.trace.GaussPupil(rings=n, arms=6)}[kind]()
+                "Gauß-Quadratur (Ringe × 6 Arme)": lambda: rt.trace.GaussPupil(rings=n, arms=6),
+                POINT_LIST: lambda: rt.trace.PointListPupil(px, py)}[kind]()
     rays = run("Strahlen erzeugen", rt.trace.make_rays, comp, sampling, path=path_choice,
                fields=[f], wavelength=w, aiming=aim)
     if rays is not None:
