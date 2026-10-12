@@ -8,7 +8,17 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from ..builder import BUILDER_COLUMNS, PRESETS, build_system_dict, surface_rows
+from ..builder import (
+    BUILDER_COLUMNS,
+    MERIT_COLUMNS,
+    MERIT_OPERANDS,
+    MIN_THICKNESS,
+    PRESETS,
+    VARIABLE_COLUMNS,
+    build_system_dict,
+    surface_rows,
+)
+from ..compat import FEATURES
 from .common import STRETCH
 
 
@@ -47,6 +57,9 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
             ss.bdf = pd.DataFrame(PRESETS[preset], columns=BUILDER_COLUMNS)
             ss.bver = ss.get("bver", 0) + 1
             ss.bedited = ss.bdf.copy()
+        for col in VARIABLE_COLUMNS:  # also for tables of sessions from before the variable columns
+            if col not in ss.bdf:
+                ss.bdf[col] = False
         left, right = st.columns([3, 2])
         with left:
             name = st.text_input("Name", value=preset)
@@ -66,6 +79,10 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
                     "Coating": st.column_config.TextColumn(
                         "Coating", help="Optional, KATALOG:NAME, z. B. DEMO:AR_MGF2 (Coating-Katalog "
                                         "in der Seitenleiste aktivieren)"),
+                    "R_var": st.column_config.CheckboxColumn("R var", help="Radius ist Optimierungsvariable"),
+                    "K_var": st.column_config.CheckboxColumn("k var", help="Konik ist Optimierungsvariable"),
+                    "D_var": st.column_config.CheckboxColumn(
+                        "d var", help=f"Dicke ist Optimierungsvariable (mindestens {MIN_THICKNESS} mm)"),
                 })
             ss.bedited = edited
             st.caption("Radiusvorzeichen: positiv, wenn der Krümmungsmittelpunkt bei +z liegt. "
@@ -99,10 +116,31 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
             field_df = st.data_editor(
                 pd.DataFrame({"x_deg": [0.0, 0.0, 0.0], "y_deg": [0.0, 3.5, 5.0], "weight": [1.0, 1.0, 1.0]}),
                 key="field_editor", num_rows="dynamic", **STRETCH)
+            merit_df = None
+            if FEATURES.optim:
+                st.markdown("**Merit-Funktion** (für die Ansicht Optimierung)")
+                # Start content from session_state like the surface table (empty by default).
+                merit_start = ss.get("bmerit")
+                if merit_start is None:
+                    merit_start = pd.DataFrame({"Operand": pd.Series([], dtype="object"),
+                                                "Ziel": pd.Series([], dtype=float),
+                                                "Gewicht": pd.Series([], dtype=float)})
+                merit_df = st.data_editor(
+                    merit_start[MERIT_COLUMNS],
+                    key="merit_editor", num_rows="dynamic", **STRETCH,
+                    column_config={
+                        "Operand": st.column_config.SelectboxColumn("Operand", options=list(MERIT_OPERANDS)),
+                        "Ziel": st.column_config.NumberColumn(
+                            "Ziel", help="Zielwert für EFL, BFL (mm) und Blendenzahl; die übrigen haben Ziel 0."),
+                        "Gewicht": st.column_config.NumberColumn("Gewicht", help="leer = 1"),
+                    })
+                st.caption("Variablen: Häkchen „R var“, „k var“, „d var“ in der Flächentabelle. „Randstrahl im "
+                           "Fokus“ hält die Bildebene im paraxialen Fokus, RMS-Spot und RMS-Wellenfront bewerten "
+                           "die Abbildung über alle Felder und Wellenlängen.")
 
         try:
             rows = surface_rows(edited.reset_index(drop=True))
-            system_dict = build_system_dict(name, epd, wl_df, field_df, rows)
+            system_dict = build_system_dict(name, epd, wl_df, field_df, rows, merit_df)
         except ValueError as error:
             st.error(str(error))
             st.stop()

@@ -8,12 +8,28 @@ are shown to the user as they are.
 from __future__ import annotations
 
 import math
+import re
 
 import pandas as pd
 
 AIR_WORDS = {"", "AIR", "VACUUM"}
 BUILDER_COLUMNS = ["Typ", "Radius_mm", "Konik", "Dicke_mm", "Material_danach", "Halbdurchm_mm",
                    "Coating"]
+# Optional check box columns: radius, conic constant and thickness of the row are optimization variables.
+VARIABLE_COLUMNS = ["R_var", "K_var", "D_var"]
+MERIT_COLUMNS = ["Operand", "Ziel", "Gewicht"]
+# Merit table label -> (operand or generator, file entry without path/target/weight, needs a target)
+MERIT_OPERANDS = {
+    "EFL": ("operand", {"type": "efl"}, True),
+    "BFL": ("operand", {"type": "bfl"}, True),
+    "Blendenzahl bildseitig": ("operand", {"type": "image_fnumber"}, True),
+    "Randstrahl im Fokus": ("operand", {"type": "ray_y", "surface": "IMG", "py": 1.0, "target": 0.0}, False),
+    "RMS-Spot": ("generator", {"type": "rms_spot"}, False),
+    "RMS-Wellenfront": ("generator", {"type": "rms_wavefront"}, False),
+}
+MIN_THICKNESS = 0.01  # lower bound of a variable thickness, mm
+_VARIABLE_ROW = re.compile(r"^([RKD])(\d+)$")
+_VARIABLE_TARGET = {"R": "Radius_mm", "K": "Konik", "D": "Dicke_mm"}
 
 
 def _singlet(r1, r2, t, mat, last, k1=0.0, coating=""):
@@ -47,6 +63,13 @@ def num(value, default=0.0) -> float:
     return default if math.isnan(v) else v
 
 
+def flag(value) -> bool:
+    """Check box value of a table cell; empty cells (None, NaN) are False."""
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return False
+    return bool(value)
+
+
 def is_air(material) -> bool:
     return str(material or "").strip().upper() in AIR_WORDS
 
@@ -67,6 +90,7 @@ def surface_rows(df: pd.DataFrame) -> list[dict]:
             "coating": "" if coating is None or (isinstance(coating, float) and math.isnan(coating))
             else str(coating).strip(),
             "z": z,
+            "r_var": flag(r.get("R_var")), "k_var": flag(r.get("K_var")), "d_var": flag(r.get("D_var")),
         }
         rows.append(row)
         if typ != "Bild":
@@ -76,8 +100,55 @@ def surface_rows(df: pd.DataFrame) -> list[dict]:
     return rows
 
 
+def merit_section(merit_df: pd.DataFrame | None) -> dict | None:
+    """The ``optimization`` section from the merit table, None if the table has no rows."""
+    operands, generators = [], []
+    if merit_df is None:
+        return None
+    for i, m in enumerate(merit_df.to_dict("records")):
+        label = str(m.get("Operand") or "").strip()
+        if not label or label == "nan":
+            continue
+        if label not in MERIT_OPERANDS:
+            raise ValueError(f"Merit-Funktion Zeile {i + 1}: unbekannter Operand '{label}'.")
+        kind, entry, needs_target = MERIT_OPERANDS[label]
+        entry = {**entry, "path": "main"}
+        target = num(m.get("Ziel"), float("nan"))
+        if needs_target:
+            if math.isnan(target):
+                raise ValueError(f"Merit-Funktion Zeile {i + 1}: {label} braucht einen Zielwert.")
+            entry["target"] = target
+        weight = num(m.get("Gewicht"), 1.0)
+        if not weight >= 0:
+            raise ValueError(f"Merit-Funktion Zeile {i + 1}: Das Gewicht muss ≥ 0 sein.")
+        if weight != 1.0:
+            entry["weight"] = weight
+        (operands if kind == "operand" else generators).append(entry)
+    if not operands and not generators:
+        return None
+    return {"operands": operands, "generators": generators}
+
+
+def table_updates(variables: list[tuple[str, float]]) -> list[tuple[int, str, float]]:
+    """(table row index, column, value) for optimized parameter rows named R<n>, K<n> or D<n>.
+
+    The builder names the rows of its variables after the quantity and the table row (1-based), so
+    the result of an optimization can be written back into the table. Other rows are ignored."""
+    updates = []
+    for row, value in variables:
+        match = _VARIABLE_ROW.match(row or "")
+        if match:
+            updates.append((int(match.group(2)) - 1, _VARIABLE_TARGET[match.group(1)], float(value)))
+    return updates
+
+
 def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.DataFrame,
-                      rows: list[dict]) -> dict:
+                      rows: list[dict], merit_df: pd.DataFrame | None = None) -> dict:
+    """The system as ``.rtt.json`` dictionary.
+
+    Without variables and merit table this is schema 0.2.0. With them (schema 0.4.0) every variable
+    becomes a row of the parameter table, named R<n>, K<n> or D<n> after the quantity and table row,
+    and positions behind a variable thickness become expression rows (Z<n>, Z<n>REL)."""
     if not rows or rows[-1]["typ"] != "Bild" or sum(r["typ"] == "Bild" for r in rows) != 1:
         raise ValueError("Die letzte Zeile muss genau eine Bildzeile (Typ 'Bild') sein.")
     if sum(r["typ"] == "Blende" for r in rows) > 1:
@@ -118,13 +189,47 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
     if not points:
         raise ValueError("Mindestens ein Feldpunkt ist nötig.")
 
-    def surface_dict(row, first_z):
+    optimization = merit_section(merit_df)
+    value_rows: list[dict] = []  # parameter rows of the variables, in table order
+    expression_rows: list[dict] = []  # positions behind a variable thickness, after the value rows
+
+    def variable(prefix: str, row: dict, value: float, **extra) -> dict:
+        name = f"{prefix}{row['i'] + 1}"
+        value_rows.append({"name": name, "value": value, "variable": True, **extra})
+        return {"param": name}
+
+    # Thickness of each row as a term of a position expression: its parameter row or the number.
+    terms = []
+    for row in rows:
+        if row["typ"] != "Bild" and row["d_var"]:
+            variable("D", row, row["t"], min=MIN_THICKNESS)
+            terms.append(f"D{row['i'] + 1}")
+        else:
+            terms.append(repr(float(row["t"])) if row["typ"] != "Bild" else "")
+
+    def position(start: int, end: int, plain: float, name: str):
+        """Distance from row ``start`` to row ``end``: the number, or a bound expression row if a
+        variable thickness lies in between."""
+        between = terms[start:end]
+        if not any(t.startswith("D") for t in between):
+            return plain
+        expression_rows.append({"name": name, "expression": " + ".join(between)})
+        return {"param": name}
+
+    def surface_dict(row, first_z, first_index):
         surface = {"id": row["id"]}
-        if row["z"] - first_z != 0.0:
-            surface["pose"] = {"position": [0.0, 0.0, row["z"] - first_z]}
+        z_rel = position(first_index, row["i"], row["z"] - first_z, f"Z{row['i'] + 1}REL")
+        if z_rel != 0.0:
+            surface["pose"] = {"position": [0.0, 0.0, z_rel]}
+        if (row["r_var"] or row["k_var"]) and row["radius"] == 0.0:
+            raise ValueError(f"Zeile {row['i'] + 1}: Eine plane Fläche (Radius 0) kann nicht variabel sein; "
+                             "einen Startradius eintragen (z. B. 1000).")
         if row["radius"] != 0.0:
-            base = {"type": "conic", "radius": row["radius"]}
-            if row["conic"] != 0.0:
+            radius = variable("R", row, row["radius"]) if row["r_var"] else row["radius"]
+            base = {"type": "conic", "radius": radius}
+            if row["k_var"]:
+                base["conic"] = variable("K", row, row["conic"])
+            elif row["conic"] != 0.0:
                 base["conic"] = row["conic"]
             surface["shape"] = {"base": base}
         if row["sd"] > 0:
@@ -136,7 +241,8 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
             surface["interaction"] = {"type": "coating", "name": row["coating"]}
         return surface
 
-    def pose(z):
+    def pose(row):
+        z = position(0, row["i"], row["z"], f"Z{row['i'] + 1}")
         return {"pose": {"position": [0.0, 0.0, z]}} if z != 0.0 else {}
 
     children, lens_no, i = [], 0, 0
@@ -148,14 +254,14 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
             if not row["sd"] > 0:
                 raise ValueError(f"Zeile {i + 1}: Die Blende braucht einen Halbdurchmesser > 0.")
             row["id"] = "STO"
-            children.append({"type": "stop", "name": "stop", **pose(row["z"]),
+            children.append({"type": "stop", "name": "stop", **pose(row),
                              "surfaces": [{"id": "STO",
                                            "aperture": {"type": "circular", "radius": row["sd"]}}]})
             i += 1
         elif row["typ"] == "Bild":
             if i > 0 and not is_air(rows[i - 1]["mat"]):
                 raise ValueError("Die letzte Fläche muss in Luft enden (Material danach = AIR).")
-            children.append({"type": "detector", "name": "image", **pose(row["z"]),
+            children.append({"type": "detector", "name": "image", **pose(row),
                              "surfaces": [{"id": "IMG"}]})
             i += 1
         else:
@@ -179,13 +285,13 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
                 g["id"] = f"L{lens_no}.S{k}"
             first_z = group[0]["z"]
             children.append({
-                "type": "lens", "name": f"L{lens_no}", **pose(first_z),
+                "type": "lens", "name": f"L{lens_no}", **pose(group[0]),
                 "material": mats[0] if len(set(mats)) == 1 else mats,
-                "surfaces": [surface_dict(g, first_z) for g in group],
+                "surfaces": [surface_dict(g, first_z, group[0]["i"]) for g in group],
             })
             i = j + 1
 
-    return {
+    system = {
         "schema_version": "0.2.0",
         "name": name,
         "units": {"length": "mm", "wavelength": "um"},
@@ -195,3 +301,11 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
         "root": {"type": "assembly", "name": "system", "children": children},
         "paths": [{"name": "main", "events": "auto"}],
     }
+    if value_rows or optimization:
+        # Parameter table and optimization section exist from schema 0.4.0 on.
+        system["schema_version"] = "0.4.0"
+        if value_rows or expression_rows:
+            system["parameters"] = value_rows + expression_rows
+        if optimization:
+            system["optimization"] = optimization
+    return system
