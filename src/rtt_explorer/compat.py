@@ -41,6 +41,10 @@ class Features:
     gauss: bool = False  # trace.GaussPupil (Gauss quadrature pupil sampling)
     wavefront: bool = False  # analysis.pupil_function, zernike_fit and focus_shift of opd_map (0.8)
     diffraction: bool = False  # analysis.psf, mtf, encircled_energy, through_focus (0.8)
+    ideal_lens: bool = False  # model.IdealLens and model.IdealCylinderLens, schema 0.5.0 (0.8)
+    jones: bool = False  # analysis.jones_pupil and analysis.stokes_pupil (0.8)
+    interferogram: bool = False  # analysis.interferogram (0.8)
+    point_list: bool = False  # trace.PointListPupil (0.8)
 
     @classmethod
     def detect(cls) -> Features:
@@ -66,6 +70,10 @@ class Features:
             gauss=hasattr(trace, "GaussPupil") and hasattr(trace, "gauss_pupil_weights"),
             wavefront=hasattr(analysis, "pupil_function") and hasattr(analysis, "zernike_fit"),
             diffraction=all(hasattr(analysis, name) for name in ("psf", "mtf", "encircled_energy", "through_focus")),
+            ideal_lens=hasattr(getattr(rt, "model", None), "IdealLens"),
+            jones=hasattr(analysis, "jones_pupil") and hasattr(analysis, "stokes_pupil"),
+            interferogram=hasattr(analysis, "interferogram"),
+            point_list=hasattr(trace, "PointListPupil"),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -89,6 +97,10 @@ class Features:
             ("Gauß-Pupille (trace.GaussPupil)", self.gauss),
             ("Pupillenfunktion und Zernike-Fit", self.wavefront),
             ("Beugung: PSF, MTF, eingeschl. Energie", self.diffraction),
+            ("Ideale Linse (Schema 0.5.0)", self.ideal_lens),
+            ("Jones-Pupille und Stokes-Karte", self.jones),
+            ("Interferogramm zweier Pfade", self.interferogram),
+            ("Pupillenpunkte als Liste", self.point_list),
         ]
 
 

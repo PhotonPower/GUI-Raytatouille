@@ -27,8 +27,8 @@ Einheiten: Längen in mm, Wellenlängen in µm, Felder in Grad. Die optische Ach
 
 | Spalte | Bedeutung |
 | --- | --- |
-| Typ | `Fläche`, `Blende` oder `Bild` |
-| Radius | Scheitelradius in mm, 0 = plan. Positiv, wenn der Krümmungsmittelpunkt bei +z liegt |
+| Typ | `Fläche`, `Blende`, `Ideallinse` (ab Raytatouille 0.8) oder `Bild` |
+| Radius | Scheitelradius in mm, 0 = plan. Positiv, wenn der Krümmungsmittelpunkt bei +z liegt. Bei einer Ideallinse die Brennweite f |
 | Konik | Konstante k |
 | Dicke | Abstand bis zur nächsten Zeile (> 0); die z-Position ergibt sich aus der Summe |
 | Material danach | `AIR`, `CONST:1.5168` oder `KATALOG:GLAS` (z. B. `SCHOTT:N-BK7`) |
@@ -39,6 +39,12 @@ Regeln: Genau eine Blende (in Luft) und genau eine Bildzeile am Ende. Das Glas s
 ersten Linsenfläche; die Fläche, die wieder in Luft führt, schließt die Linse ab. Aufeinanderfolgende
 Gläser ergeben ein verkittetes Element. Zusätzlich gibt es Tabellen für Wellenlängen (genau eine
 Referenz) und Feldpunkte. Fehler erscheinen auf Deutsch mit Zeilennummer.
+
+Eine Zeile vom Typ **Ideallinse** ist eine dünne ideale Linse in Luft (Material davor und danach
+`AIR`): Brennweite in der Radius-Spalte (f > 0 sammelnd, f < 0 zerstreuend), Halbdurchmesser
+optional, keine Konik und kein Coating. Sie bildet für ein unendlich fernes Objekt fehlerfrei ab;
+„R var“ macht die Brennweite zur Optimierungsvariablen. Mit einer Ideallinse hat die Datei Schema
+0.5.0.
 
 Hilfen: „Glas aus einem aktiven Katalog eintragen“ und der Knopf **Bildebene auf paraxialen Fokus
 setzen**, der die letzte Dicke anpasst.
@@ -70,7 +76,8 @@ Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
 Felder und Wellenlängen wählbar, verlorene Strahlen als rotes ×. Die Strahlquelle ist entweder die
 Pupille mit Feldern (braucht eine Blende) oder ein **freies kollimiertes Bündel** (Radius,
 Startebene, Neigung), das auch Systeme ohne Blende zeigt. Der Zoom auf die Bildebene schneidet den
-Bereich davor aus.
+Bereich davor aus. Ideale Linsen erscheinen als violettes Linsensymbol (Pfeile nach außen: sammelnd,
+nach innen: zerstreuend); eine Zylinderlinse ohne Brechkraft in der Schnittebene gestrichelt.
 
 **Spot:** RMS um Schwerpunkt und Hauptstrahl, GEO-Radius, angekommene Strahlen. Der Airy-Radius
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
@@ -110,7 +117,8 @@ rotationssymmetrische Pfade; ohne Blende bleiben die Strahlspalten leer.
 
 **Strahlenbündel:** Pupillenraster hexapolar, Gitter, Zufall (fester Seed) oder Gauß-Quadratur
 (Ringe × 6 Arme; die Gewichte der Bibliothek stehen in der CSV), Statustabelle,
-Auftreffpunkte und CSV-Export.
+Auftreffpunkte und CSV-Export. Ab Raytatouille 0.8 auch eine **Punktliste**: eine Zeile je Punkt
+`px, py` (normiert, Dezimalpunkt; Punkte außerhalb des Einheitskreises erlaubt, `#` für Kommentare).
 
 **Pfade & Ghosts:** Strahlquelle wie im Layout (Pupille oder freies Bündel).
 - *Transmission je Pfad:* mittlerer, kleinster und größter Leistungsanteil; verlorene Strahlen zählen 0.
@@ -118,6 +126,11 @@ Auftreffpunkte und CSV-Export.
   e-Strahl) das freie Bündel nehmen.
 - *Optische Wegdifferenz:* OPL_b − OPL_a zweier Pfade, die auf derselben Fläche enden, in mm und in
   Wellen der gewählten Wellenlänge, als Karte über Pupille oder Bündel.
+- *Interferogramm* (ab 0.8): Streifen 1 + cos φ und Intensität der beiden Pfade auf der Bildfläche,
+  mit eigener Ringzahl; dazu die Zahl der Streifen über die Fläche, die mittlere Wegdifferenz in
+  Wellen und die größte Scherung der Auftreffpunkte. Skalare Zweistrahl-Interferenz mit gleicher
+  Polarisation; Phasen von Metallspiegeln oder Coatings fehlen. Für Michelson-Aufbauten
+  (`m0/michelson`, `m4/michelson_offset`) das freie Bündel nehmen.
 - *Ghosts:* nach Ankreuzen von „Ghost-Ranking berechnen“ alle Zwei-Reflexions-Ghosts des gewählten
   Pfads, sortiert nach relativer Bestrahlungsstärke im Bild. Der Auflösungsradius r₀ ist eine
   Modellwahl (Detektor). Braucht eine Blende.
@@ -127,6 +140,13 @@ für Transmission, Diattenuation, Retardance und Zirkularität, mittlerer Stokes
 Transmission je Wellenlänge. Retardance ist nur für Strahlen definiert, die in ihrer
 Einfallsrichtung austreten (Platten, Wellenplatten, ideale Elemente). Konventionen stehen in
 `docs/architecture.md` der Bibliothek (ADR 0021).
+
+Ab Raytatouille 0.8 folgt die **Jones-Pupille** der Bibliothek (ADR 0034): Diattenuation und
+physikalische Retardance je Pupillenpunkt, auch für fokussierte Strahlen, mit Raster n × n und
+Ausgangsbasis (Doppelpol oder Dipol), dazu die Jones-Matrix am Hauptstrahl als Betrag und Phase. Bei
+polarisierter Quelle kommen Zirkularität S₃/S₀ und Orientierung der Ellipse am Ausgang dazu. Mit der
+Pupille geht das nur für rotationssymmetrische Pfade; gefaltete Systeme (z. B. `m6/fold45_metal`) mit
+dem freien Bündel, dessen Mittelstrahl dann der Hauptstrahl ist.
 
 **Optimierung:** für Systeme mit Variablen (`"variable": true`) und einem Abschnitt
 `optimization` (z. B. `m5/singlet_solve`, `m5/two_lens_gap`).
@@ -155,7 +175,9 @@ und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher lei
 **Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt,
 Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
 Wechselwirkung, Phase), die Pfade mit ihren Ereignissen sowie Parametertabelle und
-Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Nur lesen.
+Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Ideale
+Linsen stehen mit Brennweite, Objektabstand und bei Zylinderlinsen mit Achse in der Spalte
+Wechselwirkung. Nur lesen.
 
 **System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`; bei Konfigurationen
 auch die gewählte Konfiguration mit festen Werten.

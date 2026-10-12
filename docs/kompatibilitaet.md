@@ -25,6 +25,10 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `gauss` | `trace.GaussPupil`, `trace.gauss_pupil_weights` | Kein Raster „Gauß-Quadratur“ im Strahlenbündel | ab 0.7.0 (#168) |
 | `wavefront` | `analysis.pupil_function`, `analysis.zernike_fit` | OPD ohne Fokusverschiebung und Zernike-Fit; Strehl als Näherung der Oberfläche | ab 0.8.0 (#202, #203, #209) |
 | `diffraction` | `analysis.psf`, `mtf`, `encircled_energy`, `through_focus` | Ansicht Beugung zeigt nur einen Hinweis | ab 0.8.0 (#205, #206, #209) |
+| `ideal_lens` | `model.IdealLens` | Kein Zeilentyp Ideallinse im Baukasten; Dateien mit idealer Linse (Schema 0.5.0) lassen sich nicht laden | ab 0.8.0 (#178) |
+| `jones` | `analysis.jones_pupil`, `analysis.stokes_pupil` | Polarisation ohne Jones-Pupille und Stokes-Karte | ab 0.8.0 (#208, #211) |
+| `interferogram` | `analysis.interferogram` | Pfade & Ghosts ohne Interferogramm | ab 0.8.0 (#210) |
+| `point_list` | `trace.PointListPupil` | Kein Raster „Punktliste“ im Strahlenbündel | ab 0.8.0 |
 
 ## Getestet
 

@@ -13,6 +13,7 @@ import streamlit as st
 from ..colors import wavelength_rgb
 from ..context import AppContext
 from ..drawing import draw_builder_sketch, draw_geometry_api, surface_extents
+from ..model_table import ideal_lenses
 from ..ui.common import STRETCH, show
 
 TITLE = "Layout"
@@ -97,7 +98,8 @@ def render(ctx: AppContext) -> None:
                 pass
         est = surface_extents(surfs_list, est_sources) if est_sources else {}
         try:
-            draw_geometry_api(ax, comp, plane, est, default_h, label_surfaces)
+            ideal = ideal_lenses(ctx.system.root) if features.model else {}
+            draw_geometry_api(ax, comp, plane, est, default_h, label_surfaces, ideal)
         except (rt.RaytatouilleError, ValueError) as error:
             st.warning(f"Geometrie konnte nicht gezeichnet werden: {error}")
     elif builder_context is not None:

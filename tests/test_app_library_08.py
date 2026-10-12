@@ -6,7 +6,7 @@ from __future__ import annotations
 import pytest
 
 from test_app import metric, pick_reference, start, widget
-from test_app_library_06 import need, ok, ref, view
+from test_app_library_06 import need, ok, ref, table, view
 
 pytestmark = pytest.mark.library
 
@@ -103,3 +103,80 @@ def test_m6_systems_render(rtt_repo, monkeypatch, name, view_name):
     at = pick_reference(start(rtt_repo, monkeypatch), ref(name))
     at = view(at, view_name)
     assert not at.exception, [e.value for e in at.exception]
+
+
+# ---------------------------------------------------------------- part 2: ideal lens, Jones, interferogram
+
+def test_ideal_lens_in_model_and_layout(rtt_repo, monkeypatch):
+    need("ideal_lens")
+    need_reference(rtt_repo, "r2/ideal_lens.rtt.json")
+    at = pick_reference(start(rtt_repo, monkeypatch), ref("r2/ideal_lens.rtt.json"))
+    at = view(at, "Modell")
+    ok(at)
+    interactions = set(table(at, "Wechselwirkung")["Wechselwirkung"])
+    assert "ideale Linse f = 50, Objekt 75" in interactions
+    assert "ideale Zylinderlinse f = 50, Achse 0°, Objekt 75" in interactions
+    ok(view(at, "Layout"))
+
+
+def test_builder_ideal_lens_has_its_focal_length(rtt_repo, monkeypatch):
+    need("ideal_lens")
+    import pandas as pd
+
+    from rtt_explorer.builder import BUILDER_COLUMNS, VARIABLE_COLUMNS
+
+    at = start(rtt_repo, monkeypatch)
+    at = widget(at, "radio", "System").set_value("System bauen").run()
+    df = pd.DataFrame([["Blende", 0.0, 0.0, 1.0, "AIR", 10.0, ""],
+                       ["Ideallinse", 50.0, 0.0, 50.0, "AIR", 12.0, ""],
+                       ["Bild", 0.0, 0.0, 0.0, "AIR", 0.0, ""]], columns=BUILDER_COLUMNS)
+    for col in VARIABLE_COLUMNS:
+        df[col] = False
+    at.session_state["bdf"] = df
+    at.session_state["bver"] = at.session_state["bver"] + 1
+    at = at.run()
+    ok(at)
+    # The app compiles in air (n about 1.00027); f of the ideal lens is along the propagation in that medium.
+    assert metric(at, "Brennweite EFL") == pytest.approx(50.0, rel=1e-3)
+    ok(view(at, "Layout"))
+
+
+def test_bundle_with_a_pupil_point_list(rtt_repo, monkeypatch):
+    need("point_list")
+    at = view(start(rtt_repo, monkeypatch), "Strahlenbündel")
+    at = widget(at, "selectbox", "Pupillenraster").set_value("Punktliste (px, py)").run()
+    ok(at)
+    status = table(at, "Strahlen")
+    assert status["Strahlen"].sum() == 5  # the five default points
+    at = widget(at, "text_area", "Pupillenpunkte (eine Zeile je Punkt: px, py)").set_value("0, x").run()
+    assert any("Zeile 1" in e.value for e in at.error)
+
+
+def test_jones_pupil_of_the_cooke_triplet(rtt_repo, monkeypatch):
+    need("jones")
+    at = view(start(rtt_repo, monkeypatch), "Polarisation")
+    ok(at)
+    # uncoated glass: a little diattenuation at the rim, no retardance from Fresnel transmission alone
+    assert 0.0 < metric(at, "Diattenuation max") < 0.2
+    assert "x′" in table(at, "x").index
+    at = widget(at, "radio", "Quelle").set_value("Linear").run()
+    ok(at)
+
+
+def test_jones_pupil_of_the_metal_fold_with_a_free_beam(rtt_repo, monkeypatch):
+    need("jones")
+    need_reference(rtt_repo, "m6/fold45_metal.rtt.json")
+    at = view(pick_reference(start(rtt_repo, monkeypatch), ref("m6/fold45_metal.rtt.json")), "Polarisation")
+    ok(at)  # no stop: the view starts with the free collimated beam
+    # 45 degree reflection on a metal: the phase difference of s and p gives a clear retardance
+    assert metric(at, "Retardance max") > 1.0
+
+
+def test_interferogram_of_the_offset_michelson(rtt_repo, monkeypatch):
+    need("interferogram")
+    at = view(pick_reference(start(rtt_repo, monkeypatch), ref("m4/michelson_offset.rtt.json")), "Pfade & Ghosts")
+    ok(at)
+    arrived, launched = (int(v) for v in next(m for m in at.metric
+                                              if m.label == "Punkte auf beiden Pfaden").value.split("/"))
+    assert 0 < arrived <= launched
+    assert metric(at, "Streifen über die Fläche") >= 0.0

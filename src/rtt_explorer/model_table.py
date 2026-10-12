@@ -79,7 +79,39 @@ def interaction_text(interaction) -> str:
     kind = type(interaction).__name__
     if kind == "CoatingRef":
         return f"Coating {interaction.name}"
+    if kind in ("IdealLens", "IdealCylinderLens"):
+        cylinder = kind == "IdealCylinderLens"
+        text = f"ideale {'Zylinderlinse' if cylinder else 'Linse'} f = {param_text(interaction.focal_length)}"
+        if cylinder:
+            text += f", Achse {num(interaction.axis_deg)}°"
+        if getattr(interaction, "object_distance", None) is not None:
+            text += f", Objekt {param_text(interaction.object_distance)}"
+        return text
     return INTERACTIONS.get(kind, kind)
+
+
+def ideal_lenses(root) -> dict[str, dict]:
+    """Surface id -> {"cylinder", "f" (mm, None if not a number), "axis_deg"} of the ideal lenses."""
+    lenses = {}
+    for _, element in walk(root):
+        for s in element.surfaces:
+            kind = type(s.interaction).__name__
+            if kind in ("IdealLens", "IdealCylinderLens"):
+                f = _plain(s.interaction.focal_length)
+                lenses[s.id] = {"cylinder": kind == "IdealCylinderLens", "f": None if f is None else float(f),
+                                "axis_deg": float(_plain(getattr(s.interaction, "axis_deg", 0.0)) or 0.0)}
+    return lenses
+
+
+def power_in_plane(lens: dict, plane: str) -> bool:
+    """Whether an ideal lens refracts in the drawing plane ``yz`` or ``xz``.
+
+    A cylinder lens has power only along (-sin ψ, cos ψ) for the axis angle ψ (from x towards y)."""
+    if not lens["cylinder"]:
+        return True
+    psi = math.radians(lens["axis_deg"])
+    component = math.cos(psi) if plane == "yz" else math.sin(psi)
+    return abs(component) > 1e-9
 
 
 def phase_text(phases) -> str:
