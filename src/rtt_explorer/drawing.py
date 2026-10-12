@@ -9,6 +9,7 @@ import raytatouille as rt
 from matplotlib.patches import Polygon
 
 from .builder import AIR_WORDS, is_air
+from .model_table import power_in_plane
 
 
 def aperture_extent(surface, plane: str) -> float | None:
@@ -40,12 +41,27 @@ def surface_extents(surfs, bundles) -> dict[int, float]:
     return est
 
 
+def draw_ideal_lens(ax, z_top: tuple[float, float], z_bottom: tuple[float, float], lens: dict | None,
+                    plane: str) -> None:
+    """Thin-lens symbol between two points (z, height): arrow heads outward for f > 0, inward for
+    f < 0; a dashed line where a cylinder lens has no power in the drawing plane."""
+    (z1, h1), (z2, h2) = z_top, z_bottom
+    if lens is None or not power_in_plane(lens, plane) or not lens["f"]:
+        ax.plot([z1, z2], [h1, h2], "--", color="tab:purple", lw=1.6)
+        return
+    ax.plot([z1, z2], [h1, h2], "-", color="tab:purple", lw=2)
+    up, down = ("^", "v") if lens["f"] > 0 else ("v", "^")
+    ax.plot([z1], [h1], up, color="tab:purple", ms=8)
+    ax.plot([z2], [h2], down, color="tab:purple", ms=8)
+
+
 def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: float,
-                      label_surfaces: bool) -> None:
+                      label_surfaces: bool, ideal: dict[str, dict] | None = None) -> None:
     """Draw lenses, mirrors, stops and detector with raytatouille.layout.
 
     Elements with unbounded surfaces (no aperture) are drawn from sag values with a height
-    estimated from the traced rays, since the library has no profile for them."""
+    estimated from the traced rays, since the library has no profile for them. `ideal` maps the
+    surface ids of ideal lenses to model_table.ideal_lenses entries; they get the thin-lens symbol."""
     lay = rt.layout
     surfs = lay.surfaces(comp)
     elements = lay.elements(comp)
@@ -107,6 +123,11 @@ def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: fl
             elif sf.kind == "detector":
                 h = (aperture_extent(sf, plane) or (est[i] * 1.2 + 0.5 if i in est else default_h))
                 ax.plot([z, z], [-h, h], "-", color="tab:red", lw=2)
+            elif ideal and comp.surface_ids[i] in ideal:
+                line = profile_lines(i)[0]
+                top, bottom = int(np.argmax(line[:, col])), int(np.argmin(line[:, col]))
+                draw_ideal_lens(ax, (line[top, 2], line[top, col]), (line[bottom, 2], line[bottom, col]),
+                                ideal[comp.surface_ids[i]], plane)
             else:
                 for line in profile_lines(i):
                     ax.plot(line[:, 2], line[:, col], "-", color="k", lw=1.6)
