@@ -10,6 +10,7 @@ from raytatouille import analysis as an
 from raytatouille import plot as rtplot
 
 from ..context import AppContext
+from ..diffraction import airy_radius_um
 from ..ui.common import STRETCH, run, show, show_result_notes
 
 TITLE = "Spot"
@@ -23,7 +24,6 @@ def render(ctx: AppContext) -> None:
     wl_ids = ctx.wl_ids
     wl_um = ctx.wl_um
     ref_wl = ctx.ref_wl
-    fnum = ctx.fnum
     field_label = ctx.field_label
     wl_label = ctx.wl_label
     aim_map = ctx.aim_map
@@ -42,9 +42,11 @@ def render(ctx: AppContext) -> None:
         m[1].metric("RMS um Hauptstrahl", f"{1000 * spot.stats.rms_chief:.2f} µm")
         m[2].metric("GEO-Radius (Hauptstrahl)", f"{1000 * spot.stats.geo_chief:.2f} µm")
         m[3].metric("Strahlen angekommen", f"{spot.rays_arrived}/{spot.rays_launched}")
-        airy = 1.22 * wl_um[ref_wl] * fnum if fnum else None
+        # GUI approximation: r = 1.22 * lambda * N_w with the paraxial working f-number (diffraction.airy_radius_um)
+        airy = airy_radius_um(wl_um[ref_wl if w is None else w], ctx.working_fnum)
         m[4].metric("Airy-Radius (Näherung)", f"{airy:.2f} µm" if airy else "–",
-                    help="1,22 · λ_ref · f/#, nur ein grober Vergleichswert.")
+                    help="1,22 · λ · N_w mit der paraxialen Arbeitsblende N_w = 1/(2·|n′u′|) (bei "
+                         "polychromatisch λ_ref); ein Vergleichswert. Die Beugungs-PSF zeigt die Ansicht Beugung.")
         fig, ax = plt.subplots(figsize=(6, 6))
         rtplot.spot(spot, ax)
         if airy:

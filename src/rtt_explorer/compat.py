@@ -39,6 +39,8 @@ class Features:
     optim: bool = False  # raytatouille.optim (optimize, MeritFunction)
     reports: bool = False  # analysis.dimension_report, system_report, raytrace_report
     gauss: bool = False  # trace.GaussPupil (Gauss quadrature pupil sampling)
+    wavefront: bool = False  # analysis.pupil_function, zernike_fit and focus_shift of opd_map (0.8)
+    diffraction: bool = False  # analysis.psf, mtf, encircled_energy, through_focus (0.8)
 
     @classmethod
     def detect(cls) -> Features:
@@ -62,6 +64,8 @@ class Features:
             optim=hasattr(getattr(rt, "optim", None), "optimize"),
             reports=hasattr(analysis, "dimension_report") and hasattr(analysis, "raytrace_report"),
             gauss=hasattr(trace, "GaussPupil") and hasattr(trace, "gauss_pupil_weights"),
+            wavefront=hasattr(analysis, "pupil_function") and hasattr(analysis, "zernike_fit"),
+            diffraction=all(hasattr(analysis, name) for name in ("psf", "mtf", "encircled_energy", "through_focus")),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -83,6 +87,8 @@ class Features:
             ("Optimierung (rt.optim)", self.optim),
             ("Reports (Abmessungen, Systemdaten, Raytrace)", self.reports),
             ("Gauß-Pupille (trace.GaussPupil)", self.gauss),
+            ("Pupillenfunktion und Zernike-Fit", self.wavefront),
+            ("Beugung: PSF, MTF, eingeschl. Energie", self.diffraction),
         ]
 
 

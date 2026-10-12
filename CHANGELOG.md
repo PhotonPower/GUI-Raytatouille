@@ -4,7 +4,18 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 
 ## [Unreleased]
 
-Angepasst an Raytatouille 0.7.0 (Tag `v0.7.0`, Commit `41fff00`).
+Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
+
+### Hinzugefügt (0.8.0)
+- Ansicht **Beugung** (M6): Beugungs-PSF mit Strehlzahl und Schnitten, MTF tangential und sagittal,
+  eingeschlossene Energie mit den Radien für 50, 80 und 90 % und die Strehlzahl durch den Fokus;
+  monochromatisch oder polychromatisch, Pupillengitter wählbar, mit Fokusverschiebung.
+- OPD / Wellenfront: Fokusverschiebung der Referenzkugel, σ um den besten Fokus, Strehlzahl und
+  Zernike-Koeffizienten (Noll, mit Namen) aus dem Zernike-Fit der Bibliothek.
+- Funktionsflags `wavefront` und `diffraction`.
+
+### Geändert (0.8.0)
+- OPD / Wellenfront: Die Strehlzahl kommt aus der Bibliothek statt aus der eigenen Maréchal-Formel.
 
 ### Hinzugefügt (0.7.0)
 - **Konfigurationen:** Auswahl in der Seitenleiste für Systeme mit Parametertabelle (z. B. `m5/zoom`);
@@ -38,6 +49,11 @@ Angepasst an Raytatouille 0.7.0 (Tag `v0.7.0`, Commit `41fff00`).
 - Windows-Bauanleitung der Bibliothek in `docs/installation.md`.
 
 ### Behoben
+- Spot: Der Airy-Radius rechnete mit |EFL|/EPD und war für ein Objekt im Endlichen zu klein (bei
+  `r2/ideal_lens` etwa um den Faktor 3); jetzt mit der paraxialen Arbeitsblende und der gewählten
+  Wellenlänge.
+- OPD / Wellenfront: Die Maréchal-Näherung für ältere Bibliotheken berücksichtigt jetzt λ_ref/λ; bei
+  einer anderen Wellenlänge als der Referenz war die Strehlzahl falsch.
 - Unter Windows startete die App mit `m0/feature_tour` statt mit dem Cooke-Triplet, weil die
   Beispielsystem-Labels dort Backslashes enthalten.
 
