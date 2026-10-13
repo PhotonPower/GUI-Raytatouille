@@ -149,6 +149,21 @@ def test_rays_leaving_the_last_surface_get_an_exit_stub(rtt_repo, monkeypatch):
         assert y[1] - y[0] > 1.0 and z[1] == pytest.approx(z[0], abs=1e-6)
 
 
+def test_free_beam_defaults_follow_a_change_of_system(rtt_repo, monkeypatch):
+    # Michelson: first surface at z = 50, EPD 5; TIR prism: first surface at z = 0, EPD 10. Without
+    # a reset the beam would start at z = 40, behind the entrance face of the prism.
+    need("layout")
+    at = view(pick_reference(start(rtt_repo, monkeypatch), ref("m0/michelson.rtt.json")), "Layout")
+    assert widget(at, "number_input", "Startebene z (mm)").value == pytest.approx(40.0)
+    widget(at, "number_input", "Neigung um x (°)").set_value(1.0)
+    at = pick_reference(at, ref("m3/tir_prism.rtt.json"))
+    ok(at)
+    assert widget(at, "number_input", "Startebene z (mm)").value == pytest.approx(-10.0)
+    assert widget(at, "number_input", "Bündelradius (mm)").value == pytest.approx(5.0)
+    assert widget(at, "number_input", "Neigung um x (°)").value == pytest.approx(1.0)  # not system bound
+    assert drawn_rays(at) == 11
+
+
 def test_paths_ending_on_a_detector_get_no_exit_stub(rtt_repo, monkeypatch):
     at, _ = layout_figure(rtt_repo, monkeypatch, "m0/michelson.rtt.json")
     assert not any(c.value.startswith(EXIT_NOTE) for c in at.caption)
