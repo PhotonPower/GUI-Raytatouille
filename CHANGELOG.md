@@ -6,6 +6,10 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
+### Hinzugefügt
+- Layout: **Alle Pfade zeichnen** bei Systemen mit mehreren Pfaden (Standard an), z. B. beide Arme des
+  Michelson-Interferometers; Farbe oder Linienart je Pfad, Pfadnamen in der Legende (#6).
+
 ### Hinzugefügt (0.8.0)
 - Ansicht **Beugung** (M6): Beugungs-PSF mit Strehlzahl und Schnitten, MTF tangential und sagittal,
   eingeschlossene Energie mit den Radien für 50, 80 und 90 % und die Strehlzahl durch den Fokus;
