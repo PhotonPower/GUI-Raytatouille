@@ -9,6 +9,7 @@ import raytatouille as rt
 from matplotlib.patches import Polygon
 
 from .builder import AIR_WORDS, is_air
+from .layout_geometry import plane_segment
 from .model_table import power_in_plane
 
 
@@ -115,14 +116,14 @@ def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: fl
             continue
         for i in idx:
             sf = surfs[i]
-            z = float(sf.translation[2])
+            # Stops and detectors are planes at their own position and tilt (not on the z axis).
             if sf.kind == "stop":
                 r = aperture_extent(sf, plane) or default_h
                 for sign in (1, -1):
-                    ax.plot([z, z], [sign * r, sign * 1.4 * r], "k-", lw=3)
+                    ax.plot(*plane_segment(sf.translation, sf.rotation, plane, sign * r, sign * 1.4 * r), "k-", lw=3)
             elif sf.kind == "detector":
                 h = (aperture_extent(sf, plane) or (est[i] * 1.2 + 0.5 if i in est else default_h))
-                ax.plot([z, z], [-h, h], "-", color="tab:red", lw=2)
+                ax.plot(*plane_segment(sf.translation, sf.rotation, plane, -h, h), "-", color="tab:red", lw=2)
             elif ideal and comp.surface_ids[i] in ideal:
                 line = profile_lines(i)[0]
                 top, bottom = int(np.argmax(line[:, col])), int(np.argmin(line[:, col]))

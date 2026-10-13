@@ -106,6 +106,54 @@ def test_layout_draws_both_arms_of_the_michelson(rtt_repo, monkeypatch):
     assert both == 2 * drawn_rays(at)
 
 
+EXIT_NOTE = "Blass: Austrittsrichtung nach dem letzten Ereignis"
+
+
+def layout_figure(rtt_repo, monkeypatch, name: str):
+    """(app, last layout figure) of a reference system; the figure is taken from the view's show()."""
+    need("layout")
+    figures = []
+    monkeypatch.setattr("rtt_explorer.views.layout.show", figures.append)
+    at = view(pick_reference(start(rtt_repo, monkeypatch), ref(name)), "Layout")
+    ok(at)
+    return at, figures[-1]
+
+
+def detector_lines(fig):
+    return [line for line in fig.axes[0].lines if line.get_color() == "tab:red" and line.get_linestyle() == "-"]
+
+
+@pytest.mark.parametrize(("name", "y_mid"), [("m3/metal_periscope.rtt.json", 20.0), ("m0/michelson.rtt.json", -50.0)])
+def test_detector_is_drawn_at_its_position(rtt_repo, monkeypatch, name, y_mid):
+    _, fig = layout_figure(rtt_repo, monkeypatch, name)
+    (line,) = detector_lines(fig)
+    assert sum(line.get_ydata()) / 2 == pytest.approx(y_mid, abs=1e-6)
+
+
+def test_michelson_detector_lies_along_z(rtt_repo, monkeypatch):
+    _, fig = layout_figure(rtt_repo, monkeypatch, "m0/michelson.rtt.json")
+    (line,) = detector_lines(fig)
+    z = line.get_xdata()
+    assert z[0] != pytest.approx(z[1])  # turned by 90 degrees: a segment along z, not across
+    assert line.get_ydata() == pytest.approx([-50.0, -50.0])
+
+
+def test_rays_leaving_the_last_surface_get_an_exit_stub(rtt_repo, monkeypatch):
+    # The path tir ends with the total internal reflection at P.S2; the rays leave it towards +y.
+    at, fig = layout_figure(rtt_repo, monkeypatch, "m3/tir_prism.rtt.json")
+    assert any(c.value.startswith(EXIT_NOTE) for c in at.caption)
+    stubs = [line for line in fig.axes[0].lines if line.get_alpha() is not None and line.get_alpha() < 1]
+    assert stubs
+    for line in stubs:
+        z, y = line.get_xdata(), line.get_ydata()
+        assert y[1] - y[0] > 1.0 and z[1] == pytest.approx(z[0], abs=1e-6)
+
+
+def test_paths_ending_on_a_detector_get_no_exit_stub(rtt_repo, monkeypatch):
+    at, _ = layout_figure(rtt_repo, monkeypatch, "m0/michelson.rtt.json")
+    assert not any(c.value.startswith(EXIT_NOTE) for c in at.caption)
+
+
 @pytest.mark.parametrize("name", ["m4/grating_transmission.rtt.json", "m4/calcite_walkoff.rtt.json"])
 @pytest.mark.parametrize("view_name", ["Layout", "Pfade & Ghosts", "Modell", "Prescription"])
 def test_new_reference_systems_render_without_exception(rtt_repo, monkeypatch, name, view_name):
