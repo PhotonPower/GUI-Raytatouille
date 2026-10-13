@@ -41,8 +41,10 @@ def source_ui(ctx: AppContext, key: str) -> dict:
     return {"free": True, "radius": radius, "z0": z0, "tx": tx, "ty": ty}
 
 
-def make_batch(ctx: AppContext, src: dict, kind: str, n: int, plane: str, field: int, wl: int, aim):
-    """(rays, start x or pupil x, start y or pupil y) for the chosen source."""
+def make_batch(ctx: AppContext, src: dict, kind: str, n: int, plane: str, field: int, wl: int, aim,
+               path: str | None = None):
+    """(rays, start x or pupil x, start y or pupil y) for the chosen source; pupil rays aim along
+    ``path`` (default: the path chosen in the sidebar)."""
     if src["free"]:
         batch = collimated_batch(kind, n, plane, src["radius"], src["z0"], src["tx"], src["ty"], wl)
         return batch, np.array(batch.pos_x), np.array(batch.pos_y)
@@ -50,6 +52,6 @@ def make_batch(ctx: AppContext, src: dict, kind: str, n: int, plane: str, field:
         sampling = rt.trace.FanYPupil(n=n) if plane == "yz" else rt.trace.FanXPupil(n=n)
     else:
         sampling = rt.trace.HexapolarPupil(rings=n)
-    batch = rt.trace.make_rays(ctx.comp, sampling, path=ctx.path_choice, fields=[field], wavelength=wl,
+    batch = rt.trace.make_rays(ctx.comp, sampling, path=path or ctx.path_choice, fields=[field], wavelength=wl,
                                aiming=aim)
     return batch, np.array(batch.pupil_x), np.array(batch.pupil_y)

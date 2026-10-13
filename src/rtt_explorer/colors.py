@@ -1,6 +1,13 @@
-"""Spectral colours for ray plots."""
+"""Spectral colours and line styles for ray plots."""
 
 from __future__ import annotations
+
+PATH_LINESTYLES = ("-", "--", ":", "-.")
+
+
+def path_linestyle(index: int) -> str:
+    """Line style of the path with this index when several paths are drawn in spectral colours."""
+    return PATH_LINESTYLES[index % len(PATH_LINESTYLES)]
 
 
 def wavelength_rgb(um: float) -> tuple[float, float, float]:
