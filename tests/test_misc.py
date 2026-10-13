@@ -4,9 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from rtt_explorer.colors import wavelength_rgb
+from rtt_explorer.colors import path_linestyle, wavelength_rgb
 from rtt_explorer.repo import find_repo
 from rtt_explorer.stretch import stretch_kwargs
+
+
+def test_paths_get_distinct_line_styles_that_repeat_after_four():
+    styles = [path_linestyle(i) for i in range(5)]
+    assert styles[0] == "-"  # the first path looks like a single-path drawing
+    assert len(set(styles[:4])) == 4
+    assert styles[4] == styles[0]
 
 
 class TestWavelengthRgb:

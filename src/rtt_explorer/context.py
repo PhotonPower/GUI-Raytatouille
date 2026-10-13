@@ -93,5 +93,5 @@ class AppContext:
     def source_ui(self, key: str) -> dict:
         return ray_source.source_ui(self, key)
 
-    def make_batch(self, src: dict, kind: str, n: int, plane: str, field: int, wl: int, aim):
-        return ray_source.make_batch(self, src, kind, n, plane, field, wl, aim)
+    def make_batch(self, src: dict, kind: str, n: int, plane: str, field: int, wl: int, aim, path: str | None = None):
+        return ray_source.make_batch(self, src, kind, n, plane, field, wl, aim, path)

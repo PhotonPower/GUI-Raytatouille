@@ -62,7 +62,7 @@ flowchart TD
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
-  Ghosts), `bundle_points` (Strahlenbündel).
+  Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout).
 - Widget-Schlüssel der Katalogauswahl enthalten Quelle und Referenzen, damit die Vorauswahl bei
   einem Systemwechsel neu berechnet wird.
 

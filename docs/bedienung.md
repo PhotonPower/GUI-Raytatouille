@@ -78,6 +78,11 @@ Pupille mit Feldern (braucht eine Blende) oder ein **freies kollimiertes Bündel
 Startebene, Neigung), das auch Systeme ohne Blende zeigt. Der Zoom auf die Bildebene schneidet den
 Bereich davor aus. Ideale Linsen erscheinen als violettes Linsensymbol (Pfeile nach außen: sammelnd,
 nach innen: zerstreuend); eine Zylinderlinse ohne Brechkraft in der Schnittebene gestrichelt.
+Hat das System mehrere Pfade (z. B. die beiden Arme eines Michelson-Interferometers), zeichnet
+„Alle Pfade zeichnen“ jeden Pfad einzeln: Die Bibliothek verfolgt immer einen Pfad, ein Strahlteiler
+teilt die Strahlen nicht. In Referenzfarben bekommt jeder Pfad eine Farbe, in Spektralfarben eine
+Linienart; die Legende nennt die Pfadnamen. Ausgeschaltet zeigt das Layout nur den Pfad aus der
+Seitenleiste.
 
 **Spot:** RMS um Schwerpunkt und Hauptstrahl, GEO-Radius, angekommene Strahlen. Der Airy-Radius
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der

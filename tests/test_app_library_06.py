@@ -87,6 +87,25 @@ def test_michelson_paths_with_the_free_beam(rtt_repo, monkeypatch):
     assert metric(at, "Δ Hauptstrahl") == pytest.approx(15.0, abs=1e-6)
 
 
+def drawn_rays(at) -> int:
+    """Ray count from the caption below the layout ("Alle N gezeichneten Strahlen ...")."""
+    return int(next(c.value for c in at.caption if c.value.startswith("Alle ")).split()[1])
+
+
+def test_layout_draws_both_arms_of_the_michelson(rtt_repo, monkeypatch):
+    need("paths")
+    # The library traces one path at a time; the beam splitter does not split rays at run time.
+    at = view(pick_reference(start(rtt_repo, monkeypatch), ref("m0/michelson.rtt.json")), "Layout")
+    ok(at)
+    assert not at.warning, [w.value for w in at.warning]
+    all_paths = widget(at, "checkbox", "Alle Pfade zeichnen")
+    assert all_paths.value  # default on
+    both = drawn_rays(at)
+    at = all_paths.uncheck().run()
+    ok(at)
+    assert both == 2 * drawn_rays(at)
+
+
 @pytest.mark.parametrize("name", ["m4/grating_transmission.rtt.json", "m4/calcite_walkoff.rtt.json"])
 @pytest.mark.parametrize("view_name", ["Layout", "Pfade & Ghosts", "Modell", "Prescription"])
 def test_new_reference_systems_render_without_exception(rtt_repo, monkeypatch, name, view_name):

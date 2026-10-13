@@ -10,7 +10,7 @@ import pandas as pd
 import raytatouille as rt
 import streamlit as st
 
-from ..colors import wavelength_rgb
+from ..colors import path_linestyle, wavelength_rgb
 from ..context import AppContext
 from ..drawing import draw_builder_sketch, draw_geometry_api, surface_extents
 from ..model_table import ideal_lenses
@@ -49,6 +49,15 @@ def render(ctx: AppContext) -> None:
     show_lost = d3.checkbox("Verluste markieren", value=True)
     label_surfaces = d3.checkbox("Flächen beschriften", value=False)
     equal_scale = d3.checkbox("Gleiche Achsenskalierung", value=True)
+    # The library traces one explicit path at a time; a beam splitter does not split rays at run time,
+    # each branch is a path of its own. Drawing all paths shows both arms of an interferometer.
+    path_names = list(comp.path_names)
+    all_paths = len(path_names) > 1 and d1.checkbox(
+        "Alle Pfade zeichnen", value=True, key="layout_all_paths",
+        help="Die Bibliothek verfolgt jeden Pfad einzeln; ein Strahlteiler teilt die Strahlen nicht. "
+             "Gezeichnet werden alle Pfade des Modells, in Referenzfarben je Pfad eine Farbe, in "
+             "Spektralfarben je Pfad eine Linienart. Aus: nur der Pfad aus der Seitenleiste.")
+    draw_paths = path_names if all_paths else [path_choice]
 
     if not features.paths:
         st.info("Strahlen im Layout brauchen `trace(..., record_path=True)` (nicht in dieser "
@@ -58,26 +67,30 @@ def render(ctx: AppContext) -> None:
                 "werden nur die Strahlen gezeigt; im Modus 'System bauen' gibt es eine Skizze.")
 
     src = source_ui("layout") if features.paths else {"free": False}
-    bundles = []
-    rays_error = None
+    bundles = []  # (recorded rays, colour, line style, field, wavelength)
+    rays_errors = []
+    cmap = plt.get_cmap("tab10")
     if features.paths and (sel_fields or src["free"]):
         wl_sel = [ref_wl] if wl_mode == "Referenz" else wl_ids
-        cmap = plt.get_cmap("tab10")
-        for f in ([0] if src["free"] else sel_fields):
-            for w in wl_sel:
-                try:
-                    ray_batch, _, _ = make_batch(src, kind, n_rays, plane, f, w, aim)
-                    _, recorded = rt.trace.trace(comp, ray_batch, path=path_choice, record_path=True)
-                except (rt.RaytatouilleError, ValueError) as error:
-                    rays_error = str(error)
-                    break
-                colour = wavelength_rgb(wl_um[w]) if wl_mode != "Referenz" else (
-                    "tab:blue" if src["free"] else cmap(f % 10))
-                bundles.append((recorded, colour, f, w))
-            if rays_error:
-                break
-    if rays_error:
-        st.warning(f"Keine Strahlen: {rays_error}")
+        for p, path in enumerate(draw_paths):
+            try:
+                for f in ([0] if src["free"] else sel_fields):
+                    for w in wl_sel:
+                        ray_batch, _, _ = make_batch(src, kind, n_rays, plane, f, w, aim, path)
+                        _, recorded = rt.trace.trace(comp, ray_batch, path=path, record_path=True)
+                        style = "-"
+                        if wl_mode != "Referenz":
+                            colour = wavelength_rgb(wl_um[w])
+                            style = path_linestyle(p) if all_paths else "-"
+                        elif all_paths:
+                            colour = cmap(p % 10)
+                        else:
+                            colour = "tab:blue" if src["free"] else cmap(f % 10)
+                        bundles.append((recorded, colour, style, f, w))
+            except (rt.RaytatouilleError, ValueError) as error:
+                rays_errors.append(f"Pfad „{path}“: {error}" if all_paths else str(error))
+    for error in rays_errors:
+        st.warning(f"Keine Strahlen: {error}")
 
     lat = 1 if plane == "yz" else 0
     fig, ax = plt.subplots(figsize=(11, 4.8))
@@ -89,13 +102,14 @@ def render(ctx: AppContext) -> None:
         if features.paths and can_aim and any(sf.aperture is None for sf in surfs_list):
             # Heights of surfaces without aperture: from a bundle over all fields, independent of
             # the fields chosen for drawing.
-            try:
-                for f_all in field_ids:
-                    rb, _, _ = make_batch({"free": False}, "Hexapolar", 6, plane, f_all, ref_wl, aim)
-                    _, rp = rt.trace.trace(comp, rb, path=path_choice, record_path=True)
-                    est_sources.append(rp)
-            except (rt.RaytatouilleError, ValueError):
-                pass
+            for path in draw_paths:
+                try:
+                    for f_all in field_ids:
+                        rb, _, _ = make_batch({"free": False}, "Hexapolar", 6, plane, f_all, ref_wl, aim, path)
+                        _, rp = rt.trace.trace(comp, rb, path=path, record_path=True)
+                        est_sources.append(rp)
+                except (rt.RaytatouilleError, ValueError):
+                    pass
         est = surface_extents(surfs_list, est_sources) if est_sources else {}
         try:
             ideal = ideal_lenses(ctx.system.root) if features.model else {}
@@ -106,11 +120,11 @@ def render(ctx: AppContext) -> None:
         draw_builder_sketch(builder_context["rows"], builder_context["epd"], ax)
 
     points_z, points_l = [], []
-    for recorded, colour, _f, w in bundles:
+    for recorded, colour, style, _f, w in bundles:
         pos = np.asarray(recorded.position)
         z, lt = pos[:, :, 2], pos[:, :, lat]
         lw = 0.7 if wl_mode == "Referenz" else max(0.4, 1.8 - 0.55 * wl_ids.index(w))
-        ax.plot(z.T, lt.T, "-", color=colour, lw=lw)
+        ax.plot(z.T, lt.T, style, color=colour, lw=lw)
         points_z.append(z[np.isfinite(z)])
         points_l.append(lt[np.isfinite(z)])
         if show_lost:
@@ -119,12 +133,16 @@ def render(ctx: AppContext) -> None:
                 slot = int(recorded.lost_at[i]) + 1
                 ax.plot(z[i, slot], lt[i, slot], "x", color="red", ms=5, mew=1.3)
     handles = []
-    if bundles and wl_mode == "Referenz" and not src["free"]:
-        handles = [plt.Line2D([], [], color=plt.get_cmap("tab10")(f % 10), label=field_label(f))
-                   for f in sel_fields]
+    if bundles and wl_mode == "Referenz" and all_paths:
+        handles = [plt.Line2D([], [], color=cmap(p % 10), label=path) for p, path in enumerate(draw_paths)]
+    elif bundles and wl_mode == "Referenz" and not src["free"]:
+        handles = [plt.Line2D([], [], color=cmap(f % 10), label=field_label(f)) for f in sel_fields]
     elif bundles and wl_mode != "Referenz":
         handles = [plt.Line2D([], [], color=wavelength_rgb(wl_um[w]), label=f"{wl_um[w]:.4f} µm")
                    for w in wl_ids]
+        if all_paths:
+            handles += [plt.Line2D([], [], color="gray", ls=path_linestyle(p), label=path)
+                        for p, path in enumerate(draw_paths)]
     if handles:
         ax.legend(handles=handles, fontsize=7, loc="upper left", ncol=2)
 
@@ -152,7 +170,7 @@ def render(ctx: AppContext) -> None:
     if bundles:
         lost_counts: dict[str, int] = {}
         total_rays = 0
-        for recorded, _, _, _ in bundles:
+        for recorded, *_ in bundles:
             total_rays += len(recorded.lost_at)
             events = np.asarray(recorded.event_surfaces)
             for j in np.asarray(recorded.lost_at):
