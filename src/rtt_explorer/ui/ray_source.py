@@ -33,6 +33,13 @@ def source_ui(ctx: AppContext, key: str) -> dict:
         z_default = float(min(float(sf.translation[2]) for sf in rt.layout.surfaces(comp))) - 10.0
     aperture = system_dict_for_refs.get("aperture", {})
     r_default = float(aperture.get("value", 10.0)) / 2 if aperture.get("type") == "epd" else 5.0
+    # Radius and start plane belong to the system: when its defaults change (another system), drop
+    # the old widget values, otherwise the beam could start behind the first surface.
+    defaults_key = f"src_defaults_{key}"
+    if st.session_state.get(defaults_key) != (z_default, r_default):
+        st.session_state.pop(f"src_r_{key}", None)
+        st.session_state.pop(f"src_z_{key}", None)
+        st.session_state[defaults_key] = (z_default, r_default)
     a, b, c, d = st.columns(4)
     radius = a.number_input("Bündelradius (mm)", min_value=0.01, value=r_default, key=f"src_r_{key}")
     z0 = b.number_input("Startebene z (mm)", value=z_default, key=f"src_z_{key}")

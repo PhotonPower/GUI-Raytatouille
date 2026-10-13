@@ -13,6 +13,7 @@ import streamlit as st
 from ..colors import path_linestyle, wavelength_rgb
 from ..context import AppContext
 from ..drawing import draw_builder_sketch, draw_geometry_api, surface_extents
+from ..layout_geometry import exit_segments, stub_length
 from ..model_table import ideal_lenses
 from ..ui.common import STRETCH, show
 
@@ -132,6 +133,20 @@ def render(ctx: AppContext) -> None:
             for i in lost:
                 slot = int(recorded.lost_at[i]) + 1
                 ax.plot(z[i, slot], lt[i, slot], "x", color="red", ms=5, mew=1.3)
+    # A recorded path ends at its last event; rays leaving a mirror or a total internal reflection
+    # there would end in the air. Continue them faintly, except behind a detector.
+    stubs_drawn = False
+    length = stub_length(points_z, points_l)
+    for recorded, colour, style, _f, w in bundles:
+        events = np.asarray(recorded.event_surfaces)
+        if not surfs_list or not len(events) or surfs_list[int(events[-1])].kind == "detector":
+            continue
+        start, end = exit_segments(recorded.position, recorded.direction, recorded.lost_at, length)
+        if len(start):
+            lw = 0.7 if wl_mode == "Referenz" else max(0.4, 1.8 - 0.55 * wl_ids.index(w))
+            ax.plot(np.vstack([start[:, 2], end[:, 2]]), np.vstack([start[:, lat], end[:, lat]]), style,
+                    color=colour, lw=lw, alpha=0.35)
+            stubs_drawn = True
     handles = []
     if bundles and wl_mode == "Referenz" and all_paths:
         handles = [plt.Line2D([], [], color=cmap(p % 10), label=path) for p, path in enumerate(draw_paths)]
@@ -166,6 +181,9 @@ def render(ctx: AppContext) -> None:
     ax.set_xlabel("z / mm")
     ax.set_ylabel(("y" if plane == "yz" else "x") + " / mm")
     show(fig)
+    if stubs_drawn:
+        st.caption("Blass: Austrittsrichtung nach dem letzten Ereignis des Pfads (die Länge dient nur der "
+                   "Orientierung). Hinter einem Detektor endet der Pfad, dort gibt es kein Stück.")
 
     if bundles:
         lost_counts: dict[str, int] = {}

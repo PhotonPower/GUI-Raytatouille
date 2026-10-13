@@ -9,6 +9,14 @@ Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter 
 ### Hinzugefügt
 - Layout: **Alle Pfade zeichnen** bei Systemen mit mehreren Pfaden (Standard an), z. B. beide Arme des
   Michelson-Interferometers; Farbe oder Linienart je Pfad, Pfadnamen in der Legende (#6).
+- Layout: Strahlen, die die letzte Fläche eines Pfads verlassen (Spiegel, Totalreflexion), laufen
+  blass in ihrer Austrittsrichtung weiter; nicht hinter einem Detektor (#9).
+
+### Behoben
+- Layout: Blenden und Detektoren werden an ihrer Position und mit ihrer Verkippung gezeichnet statt
+  immer auf der Achse (#7).
+- Freies Bündel: Radius und Startebene folgen einem Systemwechsel. Vorher startete das Bündel nach
+  dem Michelson beim TIR-Prisma hinter der Eintrittsfläche, und alle Strahlen gingen verloren.
 
 ### Hinzugefügt (0.8.0)
 - Ansicht **Beugung** (M6): Beugungs-PSF mit Strehlzahl und Schnitten, MTF tangential und sagittal,

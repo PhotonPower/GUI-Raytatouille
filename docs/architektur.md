@@ -38,6 +38,7 @@ flowchart TD
 | `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
+| `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
 | `drawing`, `rays` | Linsenschnitt zeichnen, freies kollimiertes Bündel | ja |
@@ -65,6 +66,10 @@ flowchart TD
   Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout).
 - Widget-Schlüssel der Katalogauswahl enthalten Quelle und Referenzen, damit die Vorauswahl bei
   einem Systemwechsel neu berechnet wird.
+- Strahlquelle (`ui.ray_source`, je Ansicht ein `key`): `src_{key}_{can_aim}` (Pupille oder freies
+  Bündel), `src_r_{key}`, `src_z_{key}`, `src_tx_{key}`, `src_ty_{key}`. `src_defaults_{key}` merkt sich
+  die Vorgaben für Radius und Startebene; ändern sie sich (anderes System), werden `src_r_{key}` und
+  `src_z_{key}` verworfen. Die Neigungen bleiben.
 
 ## Neue Ansicht hinzufügen
 

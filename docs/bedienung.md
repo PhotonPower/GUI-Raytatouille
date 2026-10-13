@@ -82,7 +82,11 @@ Hat das System mehrere Pfade (z. B. die beiden Arme eines Michelson-Interferomet
 „Alle Pfade zeichnen“ jeden Pfad einzeln: Die Bibliothek verfolgt immer einen Pfad, ein Strahlteiler
 teilt die Strahlen nicht. In Referenzfarben bekommt jeder Pfad eine Farbe, in Spektralfarben eine
 Linienart; die Legende nennt die Pfadnamen. Ausgeschaltet zeigt das Layout nur den Pfad aus der
-Seitenleiste.
+Seitenleiste. Blenden und Detektoren stehen an ihrer Position und mit ihrer Verkippung (z. B. der
+Detektor des Michelson bei y = −50). Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
+ein blasses Stück, wohin die Strahlen danach laufen; seine Länge dient nur der Orientierung. Hinter
+einem Detektor gibt es kein solches Stück. Radius und Startebene des freien Bündels werden beim
+Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen bleiben.
 
 **Spot:** RMS um Schwerpunkt und Hauptstrahl, GEO-Radius, angekommene Strahlen. Der Airy-Radius
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
