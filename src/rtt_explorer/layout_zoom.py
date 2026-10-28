@@ -67,3 +67,49 @@ def source_point(positions: Sequence[np.ndarray], lat: int) -> tuple[float, floa
     if not len(start):
         return None
     return float(start[:, 2].mean()), float(start[:, lat].mean())
+
+
+def image_plane_z(bundles: Sequence[tuple[np.ndarray, np.ndarray]]) -> float | None:
+    """Mean z of the end points of the rays that arrived; ``None`` if no ray has a finite end.
+
+    ``bundles`` holds ``(position, lost_at)`` per bundle: the recorded positions ``(rays, points, 3)``
+    in global (x, y, z) and the event index where a ray was lost (``-1`` if it was not). The last
+    point of a ray is its final state; lost rays are skipped, so a bundle that is blocked completely
+    gives no image plane instead of NaN."""
+    ends = []
+    for position, lost_at in bundles:
+        position, lost_at = np.asarray(position, dtype=float), np.asarray(lost_at)
+        if position.ndim != 3 or not len(position):
+            continue
+        z = position[:, -1, 2][lost_at < 0]
+        ends.append(z[np.isfinite(z)])
+    if not ends:
+        return None
+    z = np.concatenate(ends)
+    return float(z.mean()) if z.size else None
+
+
+def image_window(z_img: float, width: float, z_parts: Sequence[np.ndarray], lat_parts: Sequence[np.ndarray],
+                 fallback: tuple[float, float]) -> Window:
+    """Window in front of the image plane: from ``z_img - width`` to ``z_img + 0.1 * width``.
+
+    The lateral range is symmetric, 1.2 times the largest ray height inside the window (at least
+    1e-3 mm); non-finite points are ignored. Without a ray in the window it is ``fallback``.
+    ``ValueError`` for a non-finite plane or a non-positive width."""
+    if not math.isfinite(z_img):
+        raise ValueError("Bildebene: z ist nicht endlich")
+    if not (math.isfinite(width) and width > 0.0):
+        raise ValueError("Bildfenster: die Breite muss größer als 0 sein")
+    z_min, z_max = z_img - width, z_img + 0.1 * width
+    lat_max = 0.0
+    found = False
+    for z, lat in zip(z_parts, lat_parts):
+        z, lat = np.asarray(z, dtype=float), np.asarray(lat, dtype=float)
+        inside = np.isfinite(z) & np.isfinite(lat) & (z >= z_min) & (z <= z_max)
+        if inside.any():
+            found = True
+            lat_max = max(lat_max, float(np.abs(lat[inside]).max()))
+    if not found:
+        return (z_min, z_max, float(fallback[0]), float(fallback[1]))
+    span = max(1.2 * lat_max, 1e-3)
+    return (z_min, z_max, -span, span)
