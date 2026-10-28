@@ -39,6 +39,8 @@ flowchart TD
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende | nein |
+| `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
+| `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
 | `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle und vor der Bildebene, Startpunkt und Bildebene aus den Strahlen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
@@ -65,6 +67,9 @@ flowchart TD
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
   Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout), `layout_truncate_lost` (Layout).
+- Detektorbild: Widget-Schlüssel `detimg_field`, `detimg_wl`, `detimg_rays`, `detimg_aim`, `detimg_source`,
+  `detimg_nx`, `detimg_ny`, `detimg_square`, `detimg_scale`, `detimg_cmap`, `detimg_manual`, `detimg_reset`,
+  `detimg_x0`, `detimg_x1`, `detimg_y0`, `detimg_y1`.
 - Layout-Ausschnitt: `layout_view_mode` (`all`, `source`, `image`, `box`), `layout_view_box` (letzter
   Ausschnitt) und die Widget-Schlüssel `layout_view_all`, `layout_view_source`, `layout_view_image`,
   `layout_view_apply`, `layout_zoom_half`, `layout_zoom_image_width`, `layout_zoom_z0`,

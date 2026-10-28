@@ -7,6 +7,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Neue Ansicht **Detektorbild**: die Bildfläche wie eine Kamera, mit bis zu 4 Mio. Strahlen und einem
+  Pixelraster, dessen Auflösung in x und y frei wählbar ist; Quelle gleichmäßig je Pupillenpunkt oder
+  isotrop (je Raumwinkel), Bildfeld automatisch oder frei, Skala linear oder logarithmisch, Farbtabelle.
+  Die Pupillenpunkte liegen gleichmäßig in der Fläche (Sonnenblumenspirale, mit `PointListPupil`; ohne
+  diese Bibliotheksfunktion hexapolar).
 - Layout: **Objektraum einfärben.** Hat das Objekt ein eigenes Medium (`object.medium`, Schema 0.7), wird
   der Raum von der Quelle bis zur ersten Fläche hellblau gezeichnet und das Medium unter dem Bild genannt.
   Neues Feature-Flag `object_medium`.

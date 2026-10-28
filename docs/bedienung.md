@@ -109,6 +109,21 @@ Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
 Bibliothek und gilt auch für ein Objekt im Endlichen (ohne Prescription, vor 0.6: |EFL|/EPD).
 
+**Detektorbild:** Die Bildfläche (das letzte Ereignis des Pfads aus der Seitenleiste) wie eine Kamera:
+viele Strahlen, Auftreffpunkte in einem Pixelraster, Pixelzahl in x und y frei wählbar (8 bis 4096).
+Gewählt werden Feld, Wellenlänge, die Zahl der Strahlen (10 000 bis 4 Mio., etwa 30 s für 4 Mio.) und das
+Aiming. Die Pupillenpunkte liegen gleichmäßig in der Fläche der Pupille (Sonnenblumenspirale, keine Ringe
+im Bild). **Quelle:** „gleichmäßig je Pupillenpunkt“ gibt jedem Strahl dasselbe Gewicht, das Bild zeigt
+die Verteilung der Strahlen. „isotrop (je Raumwinkel)“ gewichtet eine Punktquelle mit cos³ des Winkels zur
+Blendennormalen, sodass jeder Raumwinkel gleich viel Leistung bekommt (nur bei endlichem Objekt, sonst
+wie gleichmäßig); eine echte Abstrahlcharakteristik wie ein Dipol kennt die Ansicht nicht. Das Gewicht
+jedes Strahls enthält außerdem die Transmission des Pfads. Das Bildfeld ist automatisch (alle
+angekommenen Strahlen mit Rand, optional quadratisch) oder frei festlegbar; Skala linear oder
+logarithmisch (0,0001 bis 1 des Maximums), Farbtabelle wählbar. Die Kopfzeile zeigt angekommene
+Strahlen, Pixelgröße in µm und den Median der Strahlen je getroffenem Pixel; unter 10 warnt die Ansicht
+vor Rauschen. Koordinaten sind die lokalen x, y der Bildfläche. Gerechnet wird nur bei einer Änderung von
+Feld, Wellenlänge, Strahlzahl, Aiming oder Quelle; Pixelzahl, Bildfeld, Skala und Farbe zeichnen nur neu.
+
 **OPD / Wellenfront:** RMS und PV in Wellen. Ab Raytatouille 0.8 verschiebt **Fokusverschiebung (mm)**
 die Referenzkugel entlang des Hauptstrahls; dazu kommen σ um den besten Fokus (ohne Z1 bis Z4) und
 die Strehlzahl nach Maréchal aus dem Zernike-Fit der Bibliothek, exp(−(2π·σ_bf·λ_ref/λ)²), gut bis
