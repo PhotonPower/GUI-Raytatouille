@@ -9,7 +9,7 @@ import raytatouille as rt
 from matplotlib.patches import Polygon
 
 from .builder import AIR_WORDS, is_air
-from .layout_geometry import plane_segment
+from .layout_geometry import object_space_polygon, plane_segment
 from .model_table import power_in_plane
 
 
@@ -136,6 +136,35 @@ def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: fl
         for i, sf in enumerate(surfs):
             ax.annotate(comp.surface_ids[i], (float(sf.translation[2]), height(i)), fontsize=7,
                         xytext=(0, 4), textcoords="offset points", ha="center", color="gray")
+
+
+def draw_object_medium(ax, comp, plane: str, surface: int, z_source: float, est: dict[int, float],
+                       default_h: float) -> bool:
+    """Tint the object space: from the source plane to the first interface, `surface`.
+
+    The medium of the source (``object.medium``) is not an element, so the layout would leave it
+    white. The tint has the colour of the glass fill, lighter; the interface itself is drawn by
+    draw_geometry_api. The outline follows the profile of the surface. Returns False if nothing was
+    drawn (the source is not in front of the surface)."""
+    lay = rt.layout
+    sf = lay.surfaces(comp)[surface]
+    col = 1 if plane == "yz" else 0
+    try:
+        lines = lay.profile(comp, surface, plane, 101) if sf.aperture is not None else []
+    except ValueError:
+        lines = []
+    if lines:
+        profile = np.vstack([np.column_stack([line[:, 2], line[:, col]]) for line in lines])
+    else:  # no aperture: a flat interface at the vertex, as high as the rays there
+        h = est[surface] * 1.15 + 0.5 if surface in est else default_h
+        z = float(sf.translation[2])
+        profile = np.array([[z, -h], [z, h]])
+    try:
+        outline = object_space_polygon(z_source, profile)
+    except ValueError:
+        return False
+    ax.add_patch(Polygon(outline, closed=True, fc="tab:blue", ec="none", alpha=0.15, zorder=0))
+    return True
 
 
 def draw_builder_sketch(rows: list[dict], epd: float, ax) -> None:

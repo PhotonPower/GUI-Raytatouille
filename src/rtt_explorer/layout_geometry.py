@@ -56,3 +56,60 @@ def stub_length(z_parts, lateral_parts, fraction: float = 0.3) -> float:
         if z.size:
             extent = max(extent, float(np.ptp(z)), float(np.ptp(lateral)))
     return fraction * extent
+
+
+def truncate_lost(position, lost_at) -> np.ndarray:
+    """Copy of the recorded positions in which a lost ray ends at its last valid surface.
+
+    ``position`` is ``(rays, slots, 3)`` as recorded by the library: slot 0 is the start and slot
+    k + 1 the point after event k. A ray lost at event j has the point where it met the surface
+    that lost it in slot j + 1, which can lie far from any real surface (the extension of a mirror,
+    a plane beyond its aperture). Slots j + 1 and later become NaN, so the ray is drawn up to slot
+    j, the last surface it reached. Rays that were not lost (``lost_at < 0``) stay as they are.
+    ``ValueError`` unless ``position`` has three dimensions."""
+    position = np.array(position, dtype=float)
+    if position.ndim != 3:
+        raise ValueError("Positionen: erwartet (Strahlen, Punkte, 3)")
+    lost_at = np.asarray(lost_at)
+    for i in np.nonzero(lost_at >= 0)[0]:
+        position[i, int(lost_at[i]) + 1:, :] = np.nan
+    return position
+
+
+def loss_slots(lost_at, truncated: bool) -> np.ndarray:
+    """Slot of the loss marker for rays lost at the events ``lost_at`` (all >= 0).
+
+    The point the library recorded for the loss (slot j + 1), or, for truncated rays, the last
+    valid surface (slot j)."""
+    slots = np.asarray(lost_at, dtype=int)
+    return slots if truncated else slots + 1
+
+
+def first_boundary(kinds) -> int | None:
+    """Index of the first event of a path that is not a stop: the first interface of the system.
+
+    ``kinds`` are the kinds of the surfaces of the events (``raytatouille.layout`` kinds such as
+    "stop", "lens", "mirror", "thin_element", "detector"). A stop does not change the medium, so
+    the object space reaches the first other surface; None if there is none."""
+    for k, kind in enumerate(kinds):
+        if kind != "stop":
+            return k
+    return None
+
+
+def object_space_polygon(z_source: float, profile, half_height: float | None = None) -> np.ndarray:
+    """Outline of the object space: from the source plane to the first interface, (z, lateral).
+
+    ``profile`` is ``(k, 2)`` points (z, lateral) of the interface surface. The polygon runs from
+    the top of the source plane along the profile (top to bottom) to the bottom of the source
+    plane; ``half_height`` is the height of the source plane (default: the largest lateral
+    coordinate of the profile). ``ValueError`` for an empty, non-finite or wrongly shaped profile,
+    or a source plane that is not in front of the whole profile."""
+    profile = np.asarray(profile, dtype=float)
+    if profile.ndim != 2 or profile.shape[1] != 2 or not len(profile) or not np.isfinite(profile).all():
+        raise ValueError("Objektraum: das Profil muss endliche (z, lateral)-Punkte enthalten")
+    if z_source >= float(profile[:, 0].min()):
+        raise ValueError("Objektraum: die Quelle muss vor der ersten Fläche liegen")
+    height = float(np.abs(profile[:, 1]).max()) if half_height is None else float(half_height)
+    ordered = profile[np.argsort(-profile[:, 1], kind="stable")]
+    return np.vstack([[z_source, height], ordered, [z_source, -height]])
