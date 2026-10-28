@@ -83,7 +83,9 @@ Hat das System mehrere Pfade (z. B. die beiden Arme eines Michelson-Interferomet
 teilt die Strahlen nicht. In Referenzfarben bekommt jeder Pfad eine Farbe, in Spektralfarben eine
 Linienart; die Legende nennt die Pfadnamen. Ausgeschaltet zeigt das Layout nur den Pfad aus der
 Seitenleiste. Blenden und Detektoren stehen an ihrer Position und mit ihrer Verkippung (z. B. der
-Detektor des Michelson bei y = −50). Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
+Detektor des Michelson bei y = −50). Eine Ringblende (Blende oder dünnes Element mit Innenradius)
+zeichnet das Layout als Material: Die gesperrte Mitte und die Backen außen sind dicke schwarze
+Balken, der offene Ring ist eine dünne graue Linie. Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
 ein blasses Stück, wohin die Strahlen danach laufen; seine Länge dient nur der Orientierung. Hinter
 einem Detektor gibt es kein solches Stück. Radius und Startebene des freien Bündels werden beim
 Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen bleiben.

@@ -13,6 +13,9 @@ Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter 
   blass in ihrer Austrittsrichtung weiter; nicht hinter einem Detektor (#9).
 
 ### Behoben
+- Layout: Ringblenden (Blende oder dünnes Element mit Innenradius) wurden als Linie über den offenen
+  Ring gezeichnet, die gesperrte Mitte blieb leer. Jetzt sind Mitte und Backen dicke Balken und der
+  offene Ring eine dünne graue Linie.
 - Layout: Blenden und Detektoren werden an ihrer Position und mit ihrer Verkippung gezeichnet statt
   immer auf der Achse (#7).
 - Freies Bündel: Radius und Startebene folgen einem Systemwechsel. Vorher startete das Bündel nach
