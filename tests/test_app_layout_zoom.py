@@ -43,7 +43,6 @@ def test_whole_system_button_returns_from_a_window(rtt_repo, monkeypatch):
     at = widget(at, "button", "Gesamtes System").click().run()
     ok(at)
     assert at.session_state["layout_view_mode"] == "all"
-    assert not at.session_state["layout_zoom_image"]
 
 
 def test_chosen_window_is_applied_and_kept(rtt_repo, monkeypatch):
@@ -69,11 +68,54 @@ def test_empty_window_is_refused_with_a_message(rtt_repo, monkeypatch):
     assert at.session_state["layout_view_mode"] == "all"
 
 
-def test_zoom_on_the_image_plane_is_switched_off_by_a_window_button(rtt_repo, monkeypatch):
+def test_image_button_sets_a_window_in_front_of_the_image_plane(rtt_repo, monkeypatch):
     at = layout(rtt_repo, monkeypatch)
-    at = widget(at, "checkbox", "Auf die Bildebene zoomen").check().run()
+    assert not widget(at, "button", "Auf Bildebene zoomen").disabled
+    at = widget(at, "button", "Auf Bildebene zoomen").click().run()
     ok(at)
-    assert at.session_state["layout_zoom_image"]
-    at = widget(at, "button", "Auf Quelle zoomen").click().run()
+    assert at.session_state["layout_view_mode"] == "image"
+    z0, z1, l0, l1 = at.session_state["layout_view_box"]
+    assert z1 - z0 == pytest.approx(22.0)  # default width 20 mm in front, a tenth of it behind
+    assert l1 > 0.0 and l0 == pytest.approx(-l1)
+    at = widget(at, "number_input", "Bildfenster vor der Bildebene (mm)").set_value(5.0).run()
     ok(at)
-    assert not at.session_state["layout_zoom_image"]
+    assert at.session_state["layout_view_mode"] == "image"  # the window follows the field
+
+
+def test_there_is_no_checkbox_for_the_image_plane_any_more(rtt_repo, monkeypatch):
+    at = layout(rtt_repo, monkeypatch)
+    assert "Auf die Bildebene zoomen" not in [c.label for c in at.checkbox]
+
+
+def lost_rays_script():
+    """Controls with a bundle in which every ray is lost: positions after the start are NaN."""
+    from types import SimpleNamespace
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import streamlit as st
+
+    from rtt_explorer.views.layout import _zoom_controls
+
+    position = np.full((3, 2, 3), np.nan)
+    position[:, 0, :] = 0.0
+    recorded = SimpleNamespace(position=position, lost_at=np.array([0, 0, 0]))
+    fig, ax = plt.subplots(figsize=(11, 4.8))
+    ax.plot([0.0, 100.0], [0.0, 0.0])
+    st.session_state["window"] = _zoom_controls(ax, fig, [(recorded,)], 1, "y", [np.array([0.0])],
+                                                [np.array([0.0])])
+
+
+def test_image_button_is_off_and_nothing_fails_if_every_ray_is_lost():
+    # Regression: "Axis limits cannot be NaN or Inf" when no ray reaches the image plane
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_function(lost_rays_script, default_timeout=60).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert widget(at, "button", "Auf Bildebene zoomen").disabled
+    assert not widget(at, "button", "Auf Quelle zoomen").disabled  # the rays do have a start
+    at.session_state["layout_view_mode"] = "image"  # a window chosen earlier, then the rays get lost
+    at = at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert at.session_state["window"] is None  # whole system instead of NaN limits
+    assert "Kein Strahl erreicht die Bildebene" in at.caption[0].value
