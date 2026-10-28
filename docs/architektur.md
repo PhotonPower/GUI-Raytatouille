@@ -39,7 +39,7 @@ flowchart TD
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads | nein |
-| `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle, Startpunkt der Strahlen | nein |
+| `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle und vor der Bildebene, Startpunkt und Bildebene aus den Strahlen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
 | `drawing`, `rays` | Linsenschnitt zeichnen, freies kollimiertes Bündel | ja |
@@ -65,10 +65,12 @@ flowchart TD
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
   Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout).
-- Layout-Ausschnitt: `layout_view_mode` (`all`, `source`, `box`), `layout_view_box` (letzter Ausschnitt)
-  und die Widget-Schlüssel `layout_view_all`, `layout_view_source`, `layout_view_apply`,
-  `layout_zoom_half`, `layout_zoom_z0`, `layout_zoom_z1`, `layout_zoom_l0`, `layout_zoom_l1` sowie
-  `layout_zoom_image` (der Zoom auf die Bildebene, früher ohne Schlüssel).
+- Layout-Ausschnitt: `layout_view_mode` (`all`, `source`, `image`, `box`), `layout_view_box` (letzter
+  Ausschnitt) und die Widget-Schlüssel `layout_view_all`, `layout_view_source`, `layout_view_image`,
+  `layout_view_apply`, `layout_zoom_half`, `layout_zoom_image_width`, `layout_zoom_z0`,
+  `layout_zoom_z1`, `layout_zoom_l0`, `layout_zoom_l1`. Der frühere Haken „Auf die Bildebene zoomen“ und
+  sein Schieberegler sind durch den Knopf `layout_view_image` und das Feld `layout_zoom_image_width`
+  ersetzt.
 - Widget-Schlüssel der Katalogauswahl enthalten Quelle und Referenzen, damit die Vorauswahl bei
   einem Systemwechsel neu berechnet wird.
 - Strahlquelle (`ui.ray_source`, je Ansicht ein `key`): `src_{key}_{can_aim}` (Pupille oder freies
