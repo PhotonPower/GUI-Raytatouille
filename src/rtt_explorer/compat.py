@@ -45,6 +45,7 @@ class Features:
     jones: bool = False  # analysis.jones_pupil and analysis.stokes_pupil (0.8)
     interferogram: bool = False  # analysis.interferogram (0.8)
     point_list: bool = False  # trace.PointListPupil (0.8)
+    object_medium: bool = False  # model.ObjectSpace.medium, schema 0.7 (ADR 0037)
 
     @classmethod
     def detect(cls) -> Features:
@@ -74,6 +75,7 @@ class Features:
             jones=hasattr(analysis, "jones_pupil") and hasattr(analysis, "stokes_pupil"),
             interferogram=hasattr(analysis, "interferogram"),
             point_list=hasattr(trace, "PointListPupil"),
+            object_medium=hasattr(getattr(getattr(rt, "model", None), "ObjectSpace", None), "medium"),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -101,6 +103,7 @@ class Features:
             ("Jones-Pupille und Stokes-Karte", self.jones),
             ("Interferogramm zweier Pfade", self.interferogram),
             ("Pupillenpunkte als Liste", self.point_list),
+            ("Medium im Objektraum (Schema 0.7)", self.object_medium),
         ]
 
 

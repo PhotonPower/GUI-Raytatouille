@@ -7,6 +7,12 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Layout: **Objektraum einfärben.** Hat das Objekt ein eigenes Medium (`object.medium`, Schema 0.7), wird
+  der Raum von der Quelle bis zur ersten Fläche hellblau gezeichnet und das Medium unter dem Bild genannt.
+  Neues Feature-Flag `object_medium`.
+- Layout: **„Verlorene Strahlen nur bis zur letzten Fläche“** (Standard aus): verlorene Strahlen enden an
+  der letzten Fläche, die sie erreicht haben, statt am gedachten Verlustpunkt (z. B. der Verlängerung eines
+  Spiegels); Widget-Schlüssel `layout_truncate_lost`.
 - Layout: **Bildausschnitt** wählen. Knöpfe „Gesamtes System“, „Auf Quelle zoomen“ (Fenster ± mm um
   den Startpunkt der Strahlen) und „Auf Bildebene zoomen“ (ersetzt den Haken und den Schieberegler)
   sowie ein frei wählbarer Bereich in z und y (bzw. x) in mm.

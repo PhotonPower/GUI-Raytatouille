@@ -64,7 +64,7 @@ flowchart TD
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
-  Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout).
+  Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout), `layout_truncate_lost` (Layout).
 - Layout-Ausschnitt: `layout_view_mode` (`all`, `source`, `image`, `box`), `layout_view_box` (letzter
   Ausschnitt) und die Widget-Schlüssel `layout_view_all`, `layout_view_source`, `layout_view_image`,
   `layout_view_apply`, `layout_zoom_half`, `layout_zoom_image_width`, `layout_zoom_z0`,

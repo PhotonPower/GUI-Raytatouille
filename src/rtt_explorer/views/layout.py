@@ -10,10 +10,11 @@ import pandas as pd
 import raytatouille as rt
 import streamlit as st
 
+from ..builder import is_air
 from ..colors import path_linestyle, wavelength_rgb
 from ..context import AppContext
-from ..drawing import draw_builder_sketch, draw_geometry_api, surface_extents
-from ..layout_geometry import exit_segments, stub_length
+from ..drawing import draw_builder_sketch, draw_geometry_api, draw_object_medium, surface_extents
+from ..layout_geometry import exit_segments, first_boundary, loss_slots, stub_length, truncate_lost
 from ..layout_zoom import Window, checked_window, fit_aspect, image_plane_z, image_window, source_point, source_window
 from ..model_table import ideal_lenses
 from ..ui.common import STRETCH, show
@@ -108,6 +109,24 @@ def _zoom_controls(ax, fig, bundles, lat: int, lat_name: str, points_z, points_l
     return None
 
 
+def draw_object_space(ax, ctx: AppContext, plane: str, est, default_h: float, bundles, src, lat: int,
+                      surfs_list) -> str:
+    """Tint the object space if the object has a medium of its own (schema 0.7); its reference or "".
+
+    Needs a point source with drawn rays: the source plane is where the rays start, so the tint
+    follows the library whatever the reference point of the object distance is."""
+    features = ctx.features
+    obj = ctx.system.object_space if features.model and features.object_medium else None
+    if obj is None or src["free"] or not bundles or obj.at_infinity or is_air(obj.medium):
+        return ""
+    start = source_point([np.asarray(b[0].position) for b in bundles], lat)
+    events = np.asarray(bundles[0][0].event_surfaces)
+    k = first_boundary([surfs_list[int(i)].kind for i in events])
+    if start is None or k is None:
+        return ""
+    return obj.medium if draw_object_medium(ax, ctx.comp, plane, int(events[k]), start[0], est, default_h) else ""
+
+
 def render(ctx: AppContext) -> None:
     """Render the view "Layout"."""
     features = ctx.features
@@ -137,6 +156,11 @@ def render(ctx: AppContext) -> None:
     wl_mode = d2.radio("Wellenlängen", ["Referenz", "alle (Farben)"], horizontal=True)
     show_lost = d3.checkbox("Verluste markieren", value=True)
     label_surfaces = d3.checkbox("Flächen beschriften", value=False)
+    truncate = d2.checkbox(
+        "Verlorene Strahlen nur bis zur letzten Fläche", value=False, key="layout_truncate_lost",
+        help="Ein verlorener Strahl endet am letzten Ereignis, das er überstanden hat, und die Marke "
+             "sitzt dort. Aus: bis zum Punkt auf der Fläche, die ihn verloren hat; das kann die "
+             "gedachte Verlängerung einer Fläche weit außerhalb ihrer Apertur sein.")
     equal_scale = d3.checkbox("Gleiche Achsenskalierung", value=True)
     # The library traces one explicit path at a time; a beam splitter does not split rays at run time,
     # each branch is a path of its own. Drawing all paths shows both arms of an interferometer.
@@ -185,6 +209,7 @@ def render(ctx: AppContext) -> None:
     fig, ax = plt.subplots(figsize=(11, 4.8))
     default_h = (epd_value / 2 * 1.3) if epd_value and math.isfinite(epd_value) else 10.0
     surfs_list = []
+    tinted = ""  # reference of the object medium if the object space is drawn
     if features.layout:
         surfs_list = rt.layout.surfaces(comp)
         est_sources = [b[0] for b in bundles]
@@ -203,6 +228,7 @@ def render(ctx: AppContext) -> None:
         try:
             ideal = ideal_lenses(ctx.system.root) if features.model else {}
             draw_geometry_api(ax, comp, plane, est, default_h, label_surfaces, ideal)
+            tinted = draw_object_space(ax, ctx, plane, est, default_h, bundles, src, lat, surfs_list)
         except (rt.RaytatouilleError, ValueError) as error:
             st.warning(f"Geometrie konnte nicht gezeichnet werden: {error}")
     elif builder_context is not None:
@@ -211,6 +237,8 @@ def render(ctx: AppContext) -> None:
     points_z, points_l = [], []
     for recorded, colour, style, _f, w in bundles:
         pos = np.asarray(recorded.position)
+        if truncate:
+            pos = truncate_lost(pos, recorded.lost_at)
         z, lt = pos[:, :, 2], pos[:, :, lat]
         lw = 0.7 if wl_mode == "Referenz" else max(0.4, 1.8 - 0.55 * wl_ids.index(w))
         ax.plot(z.T, lt.T, style, color=colour, lw=lw)
@@ -218,8 +246,7 @@ def render(ctx: AppContext) -> None:
         points_l.append(lt[np.isfinite(z)])
         if show_lost:
             lost = np.nonzero(np.asarray(recorded.lost_at) >= 0)[0]
-            for i in lost:
-                slot = int(recorded.lost_at[i]) + 1
+            for i, slot in zip(lost, loss_slots(np.asarray(recorded.lost_at)[lost], truncate)):
                 ax.plot(z[i, slot], lt[i, slot], "x", color="red", ms=5, mew=1.3)
     # A recorded path ends at its last event; rays leaving a mirror or a total internal reflection
     # there would end in the air. Continue them faintly, except behind a detector.
@@ -263,6 +290,8 @@ def render(ctx: AppContext) -> None:
     ax.set_xlabel("z / mm")
     ax.set_ylabel(("y" if plane == "yz" else "x") + " / mm")
     show(fig)
+    if tinted:
+        st.caption(f"Hellblau vor der ersten Fläche: der Objektraum mit dem Medium {tinted}.")
     if stubs_drawn:
         st.caption("Blass: Austrittsrichtung nach dem letzten Ereignis des Pfads (die Länge dient nur der "
                    "Orientierung). Hinter einem Detektor endet der Pfad, dort gibt es kein Stück.")
