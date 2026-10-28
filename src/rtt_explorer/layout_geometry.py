@@ -6,6 +6,8 @@ columns, as in ``raytatouille.layout.SurfaceLayout.rotation``.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 # Normal of the drawing plane and the index of its lateral coordinate
@@ -56,6 +58,33 @@ def stub_length(z_parts, lateral_parts, fraction: float = 0.3) -> float:
         if z.size:
             extent = max(extent, float(np.ptp(z)), float(np.ptp(lateral)))
     return fraction * extent
+
+
+def inner_radius(aperture) -> float:
+    """Inner radius in mm of a circular aperture ``(kind, parameters)``; 0 for no or another aperture.
+
+    ``aperture`` is ``raytatouille.layout.SurfaceLayout.aperture`` (``None`` without aperture)."""
+    if aperture is None:
+        return 0.0
+    kind, params = aperture
+    return float(params.get("inner_radius", 0.0)) if kind == "circular" else 0.0
+
+
+def aperture_bands(inner: float, outer: float, jaw: float = 1.4) -> tuple[list[tuple[float, float]],
+                                                                         list[tuple[float, float]]]:
+    """(blocked, open) bands ``(lo, hi)`` of the lateral coordinate of a stop-like aperture, in mm.
+
+    The aperture lets light pass between ``inner`` and ``outer`` from the axis. Blocked are the
+    central disc (if ``inner > 0``) and the jaws outside, drawn up to ``jaw * outer``. Open are the
+    ring parts, one band across the diameter without a hole. ``ValueError`` unless
+    ``0 <= inner < outer`` (finite)."""
+    if not (math.isfinite(inner) and math.isfinite(outer) and 0.0 <= inner < outer):
+        raise ValueError("Apertur: es muss 0 <= Innenradius < Außenradius gelten")
+    edge = jaw * outer
+    blocked = [(-inner, inner)] if inner > 0.0 else []
+    blocked += [(outer, edge), (-edge, -outer)]
+    free = [(inner, outer), (-outer, -inner)] if inner > 0.0 else [(-outer, outer)]
+    return blocked, free
 
 
 def truncate_lost(position, lost_at) -> np.ndarray:

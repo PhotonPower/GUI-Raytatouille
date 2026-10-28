@@ -9,7 +9,7 @@ import raytatouille as rt
 from matplotlib.patches import Polygon
 
 from .builder import AIR_WORDS, is_air
-from .layout_geometry import object_space_polygon, plane_segment
+from .layout_geometry import aperture_bands, inner_radius, object_space_polygon, plane_segment
 from .model_table import power_in_plane
 
 
@@ -117,7 +117,17 @@ def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: fl
         for i in idx:
             sf = surfs[i]
             # Stops and detectors are planes at their own position and tilt (not on the z axis).
-            if sf.kind == "stop":
+            inner, outer = inner_radius(sf.aperture), aperture_extent(sf, plane)
+            if inner > 0.0 and outer is not None and sf.kind in ("stop", "thin_element"):
+                # Ring aperture: the library gives the open ring, but what matters in the drawing is
+                # the material, so the blocked centre and the jaws outside are thick and the open
+                # ring is a thin grey line.
+                blocked, free = aperture_bands(inner, outer)
+                for lo, hi in blocked:
+                    ax.plot(*plane_segment(sf.translation, sf.rotation, plane, lo, hi), "k-", lw=3)
+                for lo, hi in free:
+                    ax.plot(*plane_segment(sf.translation, sf.rotation, plane, lo, hi), "-", color="0.65", lw=0.8)
+            elif sf.kind == "stop":
                 r = aperture_extent(sf, plane) or default_h
                 for sign in (1, -1):
                     ax.plot(*plane_segment(sf.translation, sf.rotation, plane, sign * r, sign * 1.4 * r), "k-", lw=3)
