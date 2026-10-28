@@ -7,6 +7,9 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Layout: **Bildausschnitt** wählen. Knöpfe „Gesamtes System“ und „Auf Quelle zoomen“ (Fenster ± mm um
+  den Startpunkt der Strahlen) sowie ein frei wählbarer Bereich in z und y (bzw. x) in mm. Der
+  Bildebenen-Zoom hat jetzt den Schlüssel `layout_zoom_image`.
 - Layout: **Alle Pfade zeichnen** bei Systemen mit mehreren Pfaden (Standard an), z. B. beide Arme des
   Michelson-Interferometers; Farbe oder Linienart je Pfad, Pfadnamen in der Legende (#6).
 - Layout: Strahlen, die die letzte Fläche eines Pfads verlassen (Spiegel, Totalreflexion), laufen

@@ -75,8 +75,14 @@ Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
 **Layout:** Schnittebene yz oder xz, Strahlen als Fächer oder hexapolar, Real- oder Paraxial-Aiming,
 Felder und Wellenlängen wählbar, verlorene Strahlen als rotes ×. Die Strahlquelle ist entweder die
 Pupille mit Feldern (braucht eine Blende) oder ein **freies kollimiertes Bündel** (Radius,
-Startebene, Neigung), das auch Systeme ohne Blende zeigt. Der Zoom auf die Bildebene schneidet den
-Bereich davor aus. Ideale Linsen erscheinen als violettes Linsensymbol (Pfeile nach außen: sammelnd,
+Startebene, Neigung), das auch Systeme ohne Blende zeigt. Über der Zeichnung wählt man den
+**Bildausschnitt**: „Gesamtes System“ zeigt alles, „Auf Quelle zoomen“ legt ein Fenster der
+Breite 2 × „Quellfenster ± mm“ um den Startpunkt der gezeichneten Strahlen (bei einer Punktquelle
+die Quelle; der Knopf ist ohne Strahlen aus), und unter „Ausschnitt wählen“ trägt man z und die
+Querkoordinate (y oder x) von/bis in mm ein und übernimmt sie. Der Ausschnitt bleibt, bis man einen
+anderen Knopf drückt; bei „Gleiche Achsenskalierung“ wird er in der kürzeren Richtung erweitert, damit
+er ganz sichtbar bleibt. Der Zoom auf die Bildebene schneidet den Bereich davor aus; er hat
+Vorrang vor dem Ausschnitt, solange er angehakt ist (jeder Ausschnittsknopf hakt ihn ab). Ideale Linsen erscheinen als violettes Linsensymbol (Pfeile nach außen: sammelnd,
 nach innen: zerstreuend); eine Zylinderlinse ohne Brechkraft in der Schnittebene gestrichelt.
 Hat das System mehrere Pfade (z. B. die beiden Arme eines Michelson-Interferometers), zeichnet
 „Alle Pfade zeichnen“ jeden Pfad einzeln: Die Bibliothek verfolgt immer einen Pfad, ein Strahlteiler
