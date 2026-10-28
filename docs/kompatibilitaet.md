@@ -29,6 +29,7 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `jones` | `analysis.jones_pupil`, `analysis.stokes_pupil` | Polarisation ohne Jones-Pupille und Stokes-Karte | ab 0.8.0 (#208, #211) |
 | `interferogram` | `analysis.interferogram` | Pfade & Ghosts ohne Interferogramm | ab 0.8.0 (#210) |
 | `point_list` | `trace.PointListPupil` | Kein Raster „Punktliste“ im Strahlenbündel | ab 0.8.0 |
+| `object_medium` | `model.ObjectSpace.medium` | Layout färbt den Objektraum nicht ein (Dateien mit `object.medium`, Schema 0.7, lassen sich ohnehin nicht laden) | nach 0.8.0 (Schema 0.7, #282) |
 
 ## Getestet
 

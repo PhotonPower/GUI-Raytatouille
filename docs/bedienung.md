@@ -85,6 +85,14 @@ wählen“ trägt man z und die Querkoordinate (y oder x) von/bis in mm ein und 
 Ausschnitt bleibt, bis man einen anderen Knopf drückt; bei „Gleiche Achsenskalierung“ wird er in
 der kürzeren Richtung erweitert, damit er ganz sichtbar bleibt. Ideale Linsen erscheinen als violettes Linsensymbol (Pfeile nach außen: sammelnd,
 nach innen: zerstreuend); eine Zylinderlinse ohne Brechkraft in der Schnittebene gestrichelt.
+Hat das Objekt ein eigenes Medium (`object.medium`, Schema 0.7, z. B. eine Quelle in Glas), färbt das
+Layout den Objektraum von der Quelle bis zur ersten Fläche hellblau und nennt das Medium unter dem Bild;
+das geht nur mit Strahlen von einem Punkt (nicht mit dem freien Bündel). „Verlorene Strahlen nur bis zur
+letzten Fläche“ kürzt verlorene Strahlen auf die letzte Fläche, die sie erreicht haben, und setzt die
+Marke dorthin; ohne den Haken laufen sie bis zum Punkt auf der Fläche, die sie verloren hat, und das kann
+die gedachte Verlängerung einer Fläche weit außerhalb ihrer Apertur sein. Die gekürzte Darstellung
+bestimmt auch den Bereich von „Gesamtes System“. Die Tabelle „Verlorene Strahlen je Fläche“ ändert sich
+nicht.
 Hat das System mehrere Pfade (z. B. die beiden Arme eines Michelson-Interferometers), zeichnet
 „Alle Pfade zeichnen“ jeden Pfad einzeln: Die Bibliothek verfolgt immer einen Pfad, ein Strahlteiler
 teilt die Strahlen nicht. In Referenzfarben bekommt jeder Pfad eine Farbe, in Spektralfarben eine
