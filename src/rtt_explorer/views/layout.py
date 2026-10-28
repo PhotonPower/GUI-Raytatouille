@@ -14,10 +14,98 @@ from ..colors import path_linestyle, wavelength_rgb
 from ..context import AppContext
 from ..drawing import draw_builder_sketch, draw_geometry_api, surface_extents
 from ..layout_geometry import exit_segments, stub_length
+from ..layout_zoom import Window, checked_window, fit_aspect, image_plane_z, image_window, source_point, source_window
 from ..model_table import ideal_lenses
 from ..ui.common import STRETCH, show
 
 TITLE = "Layout"
+
+ZOOM_KEYS = ("z0", "z1", "l0", "l1")  # widget keys layout_zoom_<name> of the window fields
+
+
+def _show_window(mode: str, window: Window) -> None:
+    """Set the view mode and the window fields; the fields are not created yet in this run."""
+    st.session_state["layout_view_mode"] = mode
+    st.session_state["layout_view_box"] = window
+    for name, value in zip(ZOOM_KEYS, window):
+        st.session_state[f"layout_zoom_{name}"] = float(value)
+
+
+def box_aspect(fig, ax) -> float:
+    """Width over height of the axes box on the figure."""
+    box, (fig_w, fig_h) = ax.get_position(), fig.get_size_inches()
+    return float(box.width * fig_w / (box.height * fig_h))
+
+
+def _zoom_controls(ax, fig, bundles, lat: int, lat_name: str, points_z, points_l) -> Window | None:
+    """Buttons "Gesamtes System", "Auf Quelle zoomen" and "Auf Bildebene zoomen" plus a window to
+    choose by hand.
+
+    Returns the window to draw, or ``None`` for the whole system. A window applies until another
+    button is pressed; the source window follows the field "Quellfenster", the image window the
+    field "Bildfenster". ``points_z`` and ``points_l`` are the drawn ray points (z and lateral)."""
+    ax.autoscale_view()
+    full = (*ax.get_xlim(), *ax.get_ylim())
+    point = source_point([np.asarray(b[0].position) for b in bundles], lat)
+    z_image = image_plane_z([(np.asarray(b[0].position), np.asarray(b[0].lost_at)) for b in bundles])
+    ss = st.session_state
+    ss.setdefault("layout_view_mode", "all")
+    ss.setdefault("layout_view_box", full)
+    for name, value in zip(ZOOM_KEYS, ss["layout_view_box"]):
+        ss.setdefault(f"layout_zoom_{name}", float(value))
+    ss.setdefault("layout_zoom_half", 3.0)
+    ss.setdefault("layout_zoom_image_width", 20.0)
+
+    def source_view() -> Window:
+        assert point is not None
+        return source_window(point[0], point[1], float(ss["layout_zoom_half"]), box_aspect(fig, ax))
+
+    def image_view() -> Window:
+        assert z_image is not None
+        return image_window(z_image, float(ss["layout_zoom_image_width"]), points_z, points_l, full[2:])
+
+    b1, b2, b3 = st.columns(3)
+    if b1.button("Gesamtes System", key="layout_view_all",
+                 help="Zeigt alles, was gezeichnet ist."):
+        _show_window("all", full)
+    if b2.button("Auf Quelle zoomen", key="layout_view_source", disabled=point is None,
+                 help="Fenster um den Startpunkt der gezeichneten Strahlen (die Quelle). Ohne Strahlen nicht "
+                      "verfügbar."):
+        _show_window("source", source_view())
+    if b3.button("Auf Bildebene zoomen", key="layout_view_image", disabled=z_image is None,
+                 help="Der Bereich vor der Bildebene, in der Höhe der Strahlen dort. Nicht verfügbar, wenn kein "
+                      "Strahl die Bildebene erreicht."):
+        _show_window("image", image_view())
+    _, c2, c3 = st.columns(3)
+    c2.number_input("Quellfenster ± mm", 0.01, 1.0e4, step=0.5, key="layout_zoom_half", disabled=point is None,
+                    help="Halbe Breite des Fensters um die Quelle in z.")
+    c3.number_input("Bildfenster vor der Bildebene (mm)", 0.01, 1.0e4, step=5.0, key="layout_zoom_image_width",
+                    disabled=z_image is None,
+                    help="Breite des Ausschnitts vor der Bildebene; dahinter bleibt ein Zehntel davon.")
+    with st.expander("Ausschnitt wählen"):
+        e1, e2, e3, e4 = st.columns(4)
+        z0 = e1.number_input("z von (mm)", format="%.3f", key="layout_zoom_z0")
+        z1 = e2.number_input("z bis (mm)", format="%.3f", key="layout_zoom_z1")
+        l0 = e3.number_input(f"{lat_name} von (mm)", format="%.3f", key="layout_zoom_l0")
+        l1 = e4.number_input(f"{lat_name} bis (mm)", format="%.3f", key="layout_zoom_l1")
+        if st.button("Ausschnitt übernehmen", key="layout_view_apply"):
+            try:
+                window = checked_window(z0, z1, l0, l1)
+            except ValueError as error:
+                st.error(str(error))
+            else:
+                ss["layout_view_mode"], ss["layout_view_box"] = "box", window
+    mode = ss["layout_view_mode"]
+    if mode == "source" and point is not None:
+        return source_view()
+    if mode == "image":
+        if z_image is None:
+            st.caption("Kein Strahl erreicht die Bildebene; es wird das gesamte System gezeigt.")
+            return None
+        return image_view()
+    if mode == "box":
+        return tuple(ss["layout_view_box"])  # type: ignore[return-value]
+    return None
 
 
 def render(ctx: AppContext) -> None:
@@ -161,21 +249,15 @@ def render(ctx: AppContext) -> None:
     if handles:
         ax.legend(handles=handles, fontsize=7, loc="upper left", ncol=2)
 
-    zoom = False
-    if bundles:
-        zoom = st.checkbox("Auf die Bildebene zoomen", value=False)
-    if zoom:
-        z_img = float(np.nanmean([np.asarray(b[0].position)[:, -1, 2] for b in bundles]))
-        width = st.slider("Ausschnitt vor der Bildebene (mm)", 1.0, 200.0, 20.0)
-        ax.set_xlim(z_img - width, z_img + 0.1 * width)
-        zs, ls = np.concatenate(points_z), np.concatenate(points_l)
-        window = (zs >= z_img - width) & (zs <= z_img + 0.1 * width)
-        if window.any():
-            span = max(float(np.abs(ls[window]).max()) * 1.2, 1e-3)
-            ax.set_ylim(-span, span)
+    view_window = _zoom_controls(ax, fig, bundles, lat, "y" if plane == "yz" else "x", points_z, points_l)
+    if view_window is not None:
+        if equal_scale:  # widen the shorter direction so that the scales stay equal
+            view_window = fit_aspect(view_window, box_aspect(fig, ax))
+        ax.set_xlim(view_window[0], view_window[1])
+        ax.set_ylim(view_window[2], view_window[3])
     elif equal_scale:
         ax.set_aspect("equal", adjustable="datalim")
-    if not zoom:
+    if view_window is None:
         ax.autoscale_view()
     ax.axhline(0, color="gray", lw=0.5, ls="--")
     ax.set_xlabel("z / mm")
