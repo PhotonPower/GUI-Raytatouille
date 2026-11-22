@@ -12,6 +12,7 @@ import streamlit as st
 
 from ..builder import table_updates
 from ..context import AppContext
+from ..optim_live import LiveHistory
 from ..optim_table import generator_row, operand_row, status_text, variable_label
 from ..ui.common import STRETCH, diagnostic_line, fmt, show
 
@@ -73,15 +74,21 @@ def render(ctx: AppContext) -> None:
     key = (ctx.system_key, max_iterations, ftol, xtol)
     if st.button("Optimieren", type="primary", key="optim_run"):
         options = rt.optim.OptimizeOptions(max_iterations=max_iterations, ftol=ftol, xtol=xtol)
+        live_box = st.empty()
+        extra = {}
+        if ctx.features.on_iteration:
+            extra["on_iteration"] = _live_callback(live_box, LiveHistory())
         with st.spinner("Optimiere …"):
             try:
-                result = rt.optim.optimize(system, materials=ctx.lib, coatings=ctx.coatings, options=options)
+                result = rt.optim.optimize(system, materials=ctx.lib, coatings=ctx.coatings, options=options,
+                                           **extra)
             except rt.OptimError as error:
                 st.error(f"Optimierung nicht möglich: {error} (Codes: {', '.join(error.codes)})")
                 return
             except (rt.RaytatouilleError, ValueError) as error:
                 st.error(f"Optimierung nicht möglich: {error}")
                 return
+        live_box.empty()
         ss.optim_result = (key, result)
     stored = ss.get("optim_result")
     if stored is None or stored[0] != key:
@@ -89,6 +96,34 @@ def render(ctx: AppContext) -> None:
                    "„Ergebnis übernehmen“.")
         return
     _show_result(ctx, stored[1], config_names)
+
+
+def _live_callback(box, live: LiveHistory):
+    """Callback for ``optimize(on_iteration=)``: redraw the merit history in ``box`` while the run goes on.
+
+    It runs on the calling thread, so Streamlit may draw from it. An exception would end the run like a
+    cancellation, so drawing errors are swallowed here: the display is only a convenience.
+    """
+    def callback(state) -> None:
+        live.add(state)
+        if not live.due():
+            return
+        live.mark_drawn()
+        try:
+            k, phi = live.plot_data()
+            with box.container():
+                st.caption(f"Läuft: Schritt {live.k[-1]}, φ = {fmt(live.phi[-1], 6)}, bester Wert {fmt(live.best, 6)}")
+                if phi:
+                    fig, ax = plt.subplots(figsize=(5, 2.8))
+                    ax.semilogy(k, phi, "o-", color="tab:blue", markersize=3)
+                    ax.set_xlabel("Schritt")
+                    ax.set_ylabel("φ")
+                    ax.grid(alpha=0.3, which="both")
+                    show(fig)
+        except Exception:  # noqa: BLE001 - never let the display stop the optimization
+            pass
+
+    return callback
 
 
 def _surfaces(ctx: AppContext) -> tuple[list[str], list[str]]:

@@ -7,6 +7,8 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Optimierung: **Live-Verlauf.** Während des Laufs zeichnet die Ansicht nach jedem angenommenen Schritt die
+  Merit-Funktion φ (Bibliothek ab 0.10, Feature-Flag `on_iteration`; Neuzeichnen höchstens alle 0,15 s).
 - Erkennt die Funktionen von Raytatouille 0.9.0 und 0.10.0 und danach (`Features`): `tolerance`, `irradiance`,
   `design`, `surface_types`, `freeform`, `anamorphic_first_order`, `aperture_shapes`, `inactive`,
   `on_iteration`, `object_reference`, `stop_on_surface`, `schemas`. Sie stehen in der Seitenleiste; Ansichten,

@@ -26,7 +26,9 @@ Vorschlag, keine Zusage.
   Undo, Redo); der Explorer liest es nur. Der Baukasten erzeugt weiter JSON aus einer Tabelle.
 - **Kein Abbruch, kein Fortschritt (G4):** Die Bibliothek bietet `cancel=` und `progress=`; der
   Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
-  darf. Große Rechnungen blockieren die Bedienung.
+  darf. Große Rechnungen blockieren die Bedienung. Nur die Optimierung zeigt ihren Verlauf live
+  (`on_iteration`, ab 0.10); ein Abbruchknopf fehlt weiter, weil Streamlit während des Laufs keine
+  Eingaben annimmt.
 - **Kein Footprint, keine automatische freie Öffnung (G6).**
 - **Merit-Funktion:** Im Baukasten gibt es eine Auswahl gängiger Operanden; alle Operandentypen,
   Grenzen von Variablen und Konfigurationen nur in der `.rtt.json`.

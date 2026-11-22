@@ -194,7 +194,10 @@ dem freien Bündel, dessen Mittelstrahl dann der Hauptstrahl ist.
 - Oben die Merit-Funktion: Operanden mit Ziel, Gewicht und Startwert, Generatoren (RMS-Spot oder
   RMS-Wellenfront mit Gauß-Abtastung) mit Start-RMS, darunter die Variablen mit Grenzen.
 - „Optimieren“ startet den Levenberg-Marquardt-Optimierer der Bibliothek auf einer Kopie; die Optionen
-  (Iterationen, ftol, xtol) stehen im Aufklapper. Danach: Status, Verlauf der normierten
+  (Iterationen, ftol, xtol) stehen im Aufklapper. Während des Laufs zeichnet die Ansicht nach jedem
+  angenommenen Schritt den Verlauf von φ und nennt Schritt und besten Wert (ab Raytatouille 0.10; ältere
+  Versionen zeigen nur den Spinner). Einen Abbruchknopf gibt es nicht, weil Streamlit während des Laufs
+  keine Eingaben annimmt. Danach: Status, Verlauf der normierten
   Merit-Funktion φ, Variablen vorher/nachher (an der Grenze markiert), Beiträge der Operanden und
   Generatoren.
 - „Ergebnis übernehmen“ macht das optimierte System in allen Ansichten aktiv, bis „Verwerfen“ gedrückt

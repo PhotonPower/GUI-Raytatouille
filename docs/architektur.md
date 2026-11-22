@@ -35,6 +35,7 @@ flowchart TD
 | `repo`, `colors`, `stretch` | Repo-Suche, Spektralfarben, Streamlit-Breitenschalter | nein |
 | `messages` | Diagnosen mit Code und Flächenname, Tabelle verlorener Strahlen | nein |
 | `model_table` | Modellbaum (`System.root`) als Tabellenzeilen | nein |
+| `optim_live` | Optimierung: Zwischenstände sammeln und das Neuzeichnen drosseln (`on_iteration`) | nein |
 | `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
