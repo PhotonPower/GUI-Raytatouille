@@ -30,7 +30,7 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `interferogram` | `analysis.interferogram` | Pfade & Ghosts ohne Interferogramm | ab 0.8.0 (#210) |
 | `point_list` | `trace.PointListPupil` | Kein Raster „Punktliste“ im Strahlenbündel | ab 0.8.0 |
 | `object_medium` | `model.ObjectSpace.medium` | Layout färbt den Objektraum nicht ein (Dateien mit `object.medium`, Schema 0.7, lassen sich ohnehin nicht laden) | nach 0.8.0 (Schema 0.7, #282) |
-| `tolerance` | `raytatouille.tolerance` (`expand`, `sensitivity`, `monte_carlo`) | Keine Ansicht Toleranzen | ab 0.9.0 (#253–#260) |
+| `tolerance` | `raytatouille.tolerance` (`expand`, `sensitivity`, `monte_carlo`) | Ansicht Toleranzen zeigt nur einen Hinweis | ab 0.9.0 (#253–#260) |
 | `irradiance` | `analysis.irradiance_map` | Keine Bestrahlungsstärke einer Fläche | ab 0.10.0 (#379) |
 | `design` | `rt.design.singlet` | Keine Konstruktionshelfer im Baukasten | nach 0.10.0 (#321) |
 | `surface_types` | `model.Biconic`, `model.OddAsphere` (Axicon, Q-con, Q-bfs gehören dazu) | Dateien mit diesen Flächen lassen sich nicht laden | ab 0.10.0 (#314, #315) |

@@ -20,10 +20,14 @@ Vorschlag, keine Zusage.
   und Fokusverschiebung in der Wellenfront; ideale Linse (Modell, Layout, Baukasten), Jones-Pupille
   und Stokes-Karte, Interferogramm zweier Pfade, Pupillenpunkte als Liste.
 
+- **Toleranzierung (0.9):** Ansicht Toleranzen mit Items, Sensitivität (RSS, inverse Sensitivität) und Monte Carlo.
+
 ## Bekannte Grenzen
 
 - **Kein Modelleditor (G3):** Die Bibliothek kann das Modell mit `rt.Editor` ändern (JSON Patch,
   Undo, Redo); der Explorer liest es nur. Der Baukasten erzeugt weiter JSON aus einer Tabelle.
+- **Toleranzen (0.9):** Die Ansicht liest den Satz nur; Klasse, Kriterien und Kompensatoren lassen sich nicht
+  bearbeiten, und die Prüflinge sind auf 5000 begrenzt. Es gibt einen Fortschrittsbalken, aber keinen Abbruchknopf.
 - **Kein Abbruch, kein Fortschritt (G4):** Die Bibliothek bietet `cancel=` und `progress=`; der
   Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
   darf. Große Rechnungen blockieren die Bedienung. Nur die Optimierung zeigt ihren Verlauf live

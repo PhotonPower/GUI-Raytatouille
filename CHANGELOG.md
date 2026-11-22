@@ -7,6 +7,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Neue Ansicht **Toleranzen** (Bibliothek ab 0.9, Feature-Flag `tolerance`): die Items des Toleranzsatzes, die
+  Sensitivität (Φ(±T), Anteile, RSS, vorhergesagte Streuung, Grenzen T′ der inversen Sensitivität) und Monte Carlo
+  (Ausbeute mit Wilson-Intervall, Statistik, Histogramm, Prüflinge als CSV; bis 5000 Prüflinge, fester Seed).
+  Beide Rechnungen zeigen einen Fortschrittsbalken; sie laufen in einem Thread (`progress_run`), den der
+  Skript-Thread abfragt. Es gibt keinen Abbruchknopf.
 - Layout: **Polygonaperturen und Obskurationen** (Feature-Flag `aperture_shapes`). Ein Polygon (regelmäßiges Vieleck
   oder freies Polygon) hat im Schnitt seine wirkliche Größe statt einer aus den Strahlen geschätzten Höhe.
   Obskurationen (Kreis, Rechteck, Ellipse) erscheinen als dicke schwarze Linie auf der Fläche, soweit die

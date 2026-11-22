@@ -220,6 +220,24 @@ dem freien Bündel, dessen Mittelstrahl dann der Hauptstrahl ist.
 - Große Strafgewichte auf Gleichheitsbedingungen (z. B. EFL mit Gewicht 10⁴ in `m5/singlet_optim`)
   lassen den Optimierer früh stehen bleiben; besser die Bedingung über die Parametertabelle halten.
 
+**Toleranzen** (ab Raytatouille 0.9): für Systeme mit einem Abschnitt `tolerances` (z. B. `m7/achromat_tolerances`).
+Der Explorer liest den Toleranzsatz und ändert ihn nicht; Klasse, Kriterien und Kompensatoren stehen in der Datei.
+Drei Reiter:
+- **Items:** alle Toleranzen, die der Satz ergibt (Klassen und explizite Items): Art, Ziel, Grenze T mit Einheit,
+  Verteilung und Herkunft.
+- **Sensitivität:** „Sensitivität rechnen“ wertet jedes Item bei +T und −T aus, alle anderen bei 0, nach dem Lauf der
+  Kompensatoren. Oben das Nominalsystem mit den Kriterien und ihren Grenzen. Je Kriterium (Auswahl) stehen RSS und die
+  vorhergesagte Streuung, eine Tabelle mit Φ(+T), Φ(−T), größter Änderung, Anteil an der Streuung und der Grenze T′
+  der inversen Sensitivität sowie ein Balkendiagramm der größten Beiträge. Mit dem Haken „Bestätigung“ läuft jedes Item
+  ein zweites Mal bei ±T′.
+- **Monte Carlo:** Zahl der Prüflinge (höchstens 5000) und Seed, dann „Monte Carlo rechnen“. Ergebnis: gültige
+  Prüflinge, Gesamtausbeute mit Wilson-Intervall, je Kriterium Mittel, σ, Min, Max, Perzentile, Grenze und Ausbeute,
+  ein Histogramm mit Nominalwert und Grenzen sowie die Prüflinge als CSV. Gleicher Seed gibt dieselbe Ziehung.
+
+Beide Rechnungen zeigen einen Fortschrittsbalken. Einen Abbruchknopf gibt es nicht: Streamlit nimmt während der
+Rechnung keine Eingaben an. Die Obergrenze der Prüflinge hält die Wartezeit begrenzt (ein Prüfling braucht bei
+kleinen Systemen etwa 10 ms, bei großen mit Kompensatoren Sekunden).
+
 **Reports:** drei Reiter mit Tabellen der Bibliothek, jeweils als CSV und JSON.
 - *Abmessungen:* je Glassegment Mittendicke, Halbdurchmesser und Apertur beider Flächen, Randdicke und
   Durchmesser.

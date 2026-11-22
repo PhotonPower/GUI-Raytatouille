@@ -24,10 +24,11 @@ from . import (
     seidel,
     spot,
     system_file,
+    tolerance,
 )
 
 _MODULES = [layout, spot, detector_image, ray_fans, opd, diffraction, distortion, colour, seidel, prescription,
-            bundle, paths, polar, optimization, reports, materials, model, system_file]
+            bundle, paths, polar, optimization, tolerance, reports, materials, model, system_file]
 
 # Title shown in the view selector -> render function (insertion order = display order).
 VIEWS: dict[str, Callable[[AppContext], None]] = {m.TITLE: m.render for m in _MODULES}

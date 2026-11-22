@@ -18,7 +18,7 @@ pytestmark = pytest.mark.library
 SCRIPT = str(Path(rtt_explorer.__file__).with_name("streamlit_app.py"))
 VIEWS = ["Layout", "Spot", "Detektorbild", "Ray Fans", "OPD / Wellenfront", "Beugung", "Verzeichnung & Feldkrümmung",
          "Farbfehler", "Seidel", "Prescription", "Strahlenbündel", "Pfade & Ghosts", "Polarisation", "Optimierung",
-         "Reports", "Materialien", "Modell", "System-Datei"]
+         "Toleranzen", "Reports", "Materialien", "Modell", "System-Datei"]
 
 
 def start(repo: Path, monkeypatch) -> AppTest:
