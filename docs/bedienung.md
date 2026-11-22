@@ -110,7 +110,12 @@ Linienart; die Legende nennt die Pfadnamen. Ausgeschaltet zeigt das Layout nur d
 Seitenleiste. Blenden und Detektoren stehen an ihrer Position und mit ihrer Verkippung (z. B. der
 Detektor des Michelson bei y = −50). Eine Ringblende (Blende oder dünnes Element mit Innenradius)
 zeichnet das Layout als Material: Die gesperrte Mitte und die Backen außen sind dicke schwarze
-Balken, der offene Ring ist eine dünne graue Linie. Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
+Balken, der offene Ring ist eine dünne graue Linie. Polygonaperturen (regelmäßiges Vieleck, freies Polygon;
+Bibliothek nach 0.10) haben im Schnitt die Größe, in der die Schnittlinie durch die Achse das Polygon durchquert,
+also beim Sechseck in yz bis zu den Ecken und in xz bis zu den Kanten. Obskurationen (Kreis, Rechteck, Ellipse,
+z. B. Fangspiegel und Spinne) zeichnet das Layout als dicke schwarze Linie auf der Fläche, aber nur dort, wo
+die Schnittlinie durch die Achse sie trifft: Ein Spinnenarm quer zum Schnitt erscheint als dünner Streifen,
+einer längs des Schnitts über seine ganze Länge, ein dezentrierter Körper abseits der Schnittlinie gar nicht. Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
 ein blasses Stück, wohin die Strahlen danach laufen; seine Länge dient nur der Orientierung. Hinter
 einem Detektor gibt es kein solches Stück. Radius und Startebene des freien Bündels werden beim
 Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen bleiben.

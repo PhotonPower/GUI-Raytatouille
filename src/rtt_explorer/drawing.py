@@ -9,7 +9,14 @@ import raytatouille as rt
 from matplotlib.patches import Polygon
 
 from .builder import AIR_WORDS, is_air
-from .layout_geometry import aperture_bands, inner_radius, object_space_polygon, plane_segment
+from .layout_geometry import (
+    aperture_bands,
+    inner_radius,
+    object_space_polygon,
+    obscuration_intervals,
+    plane_segment,
+    polygon_section_intervals,
+)
 from .model_table import power_in_plane
 
 
@@ -20,9 +27,44 @@ def aperture_extent(surface, plane: str) -> float | None:
     typ, p = surface.aperture
     if typ == "circular":
         return float(p["radius"])
+    if typ in ("regular_polygon", "polygon"):
+        return _polygon_extent(surface, plane)
     key = {"rectangular": ("half_width_y", "half_width_x"),
            "elliptical": ("semi_axis_y", "semi_axis_x")}.get(typ)
     return float(p[key[0 if plane == "yz" else 1]]) if key else None
+
+
+def _polygon_extent(surface, plane: str) -> float | None:
+    """Half-extent of a polygon aperture along the section line (the larger distance of its crossings)."""
+    vertices = getattr(surface, "aperture_vertices", None)
+    if vertices is None:
+        return None
+    try:
+        intervals = polygon_section_intervals(vertices, plane)
+    except ValueError:
+        return None
+    if intervals:
+        return max(max(abs(lo), abs(hi)) for lo, hi in intervals)
+    return float(np.abs(np.asarray(vertices, dtype=float)).max())  # the line misses the polygon: its outer extent
+
+
+def draw_obscurations(ax, comp, plane: str, surfs) -> None:
+    """Draw where the section line is blocked by an obscuration of a surface, as thick black lines on the surface.
+
+    The obscurations come from ``SurfaceLayout.obscurations`` (library 0.11 and later, empty before). They block
+    light but do not cut the profile, so they are drawn over it. The lines follow the sag of the surface."""
+    lay = rt.layout
+    col = 1 if plane == "yz" else 0
+    for i, sf in enumerate(surfs):
+        for kind, params in getattr(sf, "obscurations", None) or []:
+            for lo, hi in obscuration_intervals(kind, params, plane):
+                t = np.linspace(lo, hi, 21)
+                x, y = (np.zeros_like(t), t) if plane == "yz" else (t, np.zeros_like(t))
+                z = lay.sag(comp, i, x, y)
+                ok = np.isfinite(z)
+                local = np.column_stack([x, y, np.where(ok, z, 0.0)])
+                points = local @ sf.rotation.T + sf.translation
+                ax.plot(points[:, 2], points[:, col], "-", color="k", lw=3, solid_capstyle="butt", gid="obscuration")
 
 
 def surface_extents(surfs, bundles) -> dict[int, float]:
@@ -142,6 +184,7 @@ def draw_geometry_api(ax, comp, plane: str, est: dict[int, float], default_h: fl
             else:
                 for line in profile_lines(i):
                     ax.plot(line[:, 2], line[:, col], "-", color="k", lw=1.6)
+    draw_obscurations(ax, comp, plane, surfs)
     if label_surfaces:
         for i, sf in enumerate(surfs):
             ax.annotate(comp.surface_ids[i], (float(sf.translation[2]), height(i)), fontsize=7,

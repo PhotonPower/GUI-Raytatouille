@@ -39,7 +39,7 @@ flowchart TD
 | `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
-| `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende | nein |
+| `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende, Schnitt der Achsenlinie mit Polygonaperturen und Obskurationen | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
 | `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |

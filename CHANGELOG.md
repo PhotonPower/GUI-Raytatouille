@@ -7,6 +7,10 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Layout: **Polygonaperturen und Obskurationen** (Feature-Flag `aperture_shapes`). Ein Polygon (regelmäßiges Vieleck
+  oder freies Polygon) hat im Schnitt seine wirkliche Größe statt einer aus den Strahlen geschätzten Höhe.
+  Obskurationen (Kreis, Rechteck, Ellipse) erscheinen als dicke schwarze Linie auf der Fläche, soweit die
+  Schnittlinie durch die Achse sie trifft.
 - Baukasten: **Konstruktionshelfer** (`rt.design`, Feature-Flag `design`). Ein Aufklapper baut ein Singlet, ein
   verkittetes Dublett oder ein Triplet aus Radien, Dicken, Gläsern und Abständen, oder eine Linse aus einem
   Linsenkatalog (JSON), und ersetzt damit die Flächentabelle. Die Bibliothek prüft das System; Fehler erscheinen
