@@ -124,6 +124,20 @@ Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
 Bibliothek und gilt auch für ein Objekt im Endlichen (ohne Prescription, vor 0.6: |EFL|/EPD).
 
+**Bestrahlungsstärke** (ab Raytatouille 0.10, braucht eine Blende): der Footprint auf jeder Fläche des gewählten
+Pfads, nicht nur auf der Bildfläche. Gewählt werden Fläche (Vorgabe: die letzte), Feld, Wellenlänge, Aiming, die
+Zahl der Strahlen sowie Zellen in x und y (4 bis 2048). Die Karte zeigt das einfallende Gewicht je projizierter
+Zellfläche in der lokalen Ebene der Fläche (Gewicht je mm²), also die Leistung, die an der Fläche ankommt, nicht
+die, die danach weiterläuft. Bis 100 000 Strahlen gilt für jede Fläche; mehr (bis 4 Mio., etwa 2 GB und 7 s)
+gibt es nur für die letzte Fläche des Pfads. Trifft der Pfad eine Fläche mehrfach (Doppelpass, Spiegel), zählt
+„alle Besuche“ sie zusammen, oder man wählt einen Besuch. **Bereich:** „Aus den Strahlen“ (Rechteck um alle
+Treffer mit Rand), „Apertur der Fläche“ (nur bei Flächen mit Apertur, sonst eine Meldung) oder „Frei“. Strahlen,
+die nicht in der Karte zählen, stehen mit Grund unter der Karte (außerhalb des Rasters, abgeschattet, Fläche nicht
+erreicht). Skala linear oder logarithmisch, Farbtabelle wählbar; die Karte lässt sich als CSV und das Ergebnis als
+JSON laden. Gerechnet wird nur bei einer Änderung von Fläche, Feld, Wellenlänge, Strahlzahl oder Aiming. Die Ansicht
+Detektorbild bleibt für die Bildfläche mit Pixelraster wie eine Kamera, einer isotropen Quelle und bis zu 4 Mio.
+Strahlen.
+
 **Detektorbild:** Die Bildfläche (das letzte Ereignis des Pfads aus der Seitenleiste) wie eine Kamera:
 viele Strahlen, Auftreffpunkte in einem Pixelraster, Pixelzahl in x und y frei wählbar (8 bis 4096).
 Gewählt werden Feld, Wellenlänge, die Zahl der Strahlen (10 000 bis 4 Mio., etwa 30 s für 4 Mio.) und das

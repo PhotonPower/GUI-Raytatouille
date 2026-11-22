@@ -22,6 +22,8 @@ Vorschlag, keine Zusage.
 
 - **Toleranzierung (0.9):** Ansicht Toleranzen mit Items, Sensitivität (RSS, inverse Sensitivität) und Monte Carlo.
 
+- **Bestrahlungsstärke (0.10):** Ansicht Bestrahlungsstärke mit Footprint auf jeder Fläche des Pfads.
+
 ## Bekannte Grenzen
 
 - **Kein Modelleditor (G3):** Die Bibliothek kann das Modell mit `rt.Editor` ändern (JSON Patch,
@@ -33,7 +35,8 @@ Vorschlag, keine Zusage.
   darf. Große Rechnungen blockieren die Bedienung. Nur die Optimierung zeigt ihren Verlauf live
   (`on_iteration`, ab 0.10); ein Abbruchknopf fehlt weiter, weil Streamlit während des Laufs keine
   Eingaben annimmt.
-- **Kein Footprint, keine automatische freie Öffnung (G6).**
+- **Keine automatische freie Öffnung (G6).** Der Footprint auf einer Fläche steht in der Ansicht
+  Bestrahlungsstärke (Pupille mit Blende; ein freies Bündel gibt es dort nicht).
 - **Merit-Funktion:** Im Baukasten gibt es eine Auswahl gängiger Operanden; alle Operandentypen,
   Grenzen von Variablen und Konfigurationen nur in der `.rtt.json`.
 - **Optimierung und Mehrpfad-Systeme** nur so weit, wie die Bibliothek sie anbietet (z. B. keine
@@ -44,7 +47,7 @@ Vorschlag, keine Zusage.
 
 ## Ideen
 
-- Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
+- Ansicht für G7 (Through-Focus-Spot), sobald die Bibliothek sie liefert.
 - Eingeschlossene Energie mit einem Aufruf, sobald die Bibliothek `radius_max` vorab liefert
   (Raytatouille #267).
 - Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.

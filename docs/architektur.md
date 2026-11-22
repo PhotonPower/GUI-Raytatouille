@@ -45,6 +45,8 @@ flowchart TD
 | `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |
 | `progress_run` | Eine Bibliotheksrechnung in einem Thread ausführen und ihren Fortschritt im Skript-Thread abfragen (Fortschrittsbalken) | nein |
 | `tolerance_table` | Toleranz-Items, Sensitivität und Monte Carlo als Tabellenzeilen, Ausbeutetext, Obergrenze der Prüflinge | nein |
+| `irradiance_logic` | Bestrahlungsstärke: Besuche einer Fläche, Strahlgrenzen, Tabelle der nicht gezählten Strahlen | nein |
+| `irradiance_rays` | Bestrahlungsstärke: Strahlen verfolgen, Treffer lokal, Bereich, Karte der Bibliothek; braucht `raytatouille`, kein Streamlit | ja |
 | `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle und vor der Bildebene, Startpunkt und Bildebene aus den Strahlen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
@@ -73,6 +75,9 @@ flowchart TD
   `design_kind`, je Art `design_image_{kind}`, `design_radii_{kind}`, `design_thick_{kind}`, `design_gaps_triplet`,
   `design_materials_{kind}` (`kind` = `singlet`, `doublet`, `triplet`) und für Kataloge `design_image_catalog`,
   `design_catalog`, `design_entry`. Der Helfer schreibt `bdf`, `bver` und `bedited` (wie der Glas-Picker).
+- Bestrahlungsstärke: Widget-Schlüssel `irr_field`, `irr_wl`, `irr_aim`, `irr_surface`, `irr_event`, `irr_rays`, `irr_nx`,
+  `irr_ny`, `irr_extent`, `irr_x0`, `irr_x1`, `irr_y0`, `irr_y1`, `irr_scale`, `irr_cmap` und die Download-Schlüssel
+  `irr_csv`, `irr_json`.
 - Toleranzen: Widget-Schlüssel `tol_confirm`, `tol_run_sens`, `tol_crit`, `tol_trials`, `tol_seed`, `tol_run_mc`, `tol_mc_crit`,
   `tol_mc_bins` und die Download-Schlüssel `tol_sens_json`, `tol_mc_csv`, `tol_mc_json`; Ergebnisse in `tol_sens` und
   `tol_mc` (je `(Schlüssel, Ergebnis)` wie `optim_result`; der Schlüssel enthält `ctx.system_key`).
