@@ -21,6 +21,7 @@ from ..builder import (
 )
 from ..compat import FEATURES
 from .common import STRETCH
+from .design_helper import design_helper
 
 
 def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
@@ -65,6 +66,7 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
         with left:
             name = st.text_input("Name", value=preset)
             epd = st.number_input("Eintrittspupillendurchmesser EPD (mm)", value=20.0, min_value=0.01)
+            design_helper(epd)
             st.markdown("**Flächentabelle** (z-Position ergibt sich aus der Summe der Dicken)")
             row_types = [t for t in ROW_TYPES if t != "Ideallinse" or FEATURES.ideal_lens]
             edited = st.data_editor(

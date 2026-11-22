@@ -42,6 +42,7 @@ flowchart TD
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
+| `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |
 | `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle und vor der Bildebene, Startpunkt und Bildebene aus den Strahlen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
@@ -66,6 +67,10 @@ flowchart TD
 - Widget-Schlüssel der Wellenfront- und Beugungsansicht: `opd_focus`, `opd_terms` und `diff_*`
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
+- Konstruktionshelfer im Baukasten (`ui.design_helper`): `design_source`, `design_stop`, `design_sd`, `design_apply`,
+  `design_kind`, je Art `design_image_{kind}`, `design_radii_{kind}`, `design_thick_{kind}`, `design_gaps_triplet`,
+  `design_materials_{kind}` (`kind` = `singlet`, `doublet`, `triplet`) und für Kataloge `design_image_catalog`,
+  `design_catalog`, `design_entry`. Der Helfer schreibt `bdf`, `bver` und `bedited` (wie der Glas-Picker).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
   Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout), `layout_truncate_lost` (Layout).
 - Detektorbild: Widget-Schlüssel `detimg_field`, `detimg_wl`, `detimg_rays`, `detimg_aim`, `detimg_source`,

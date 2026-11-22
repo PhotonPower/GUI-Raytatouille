@@ -46,6 +46,16 @@ optional, keine Konik und kein Coating. Sie bildet für ein unendlich fernes Obj
 „R var“ macht die Brennweite zur Optimierungsvariablen. Mit einer Ideallinse hat die Datei Schema
 0.5.0.
 
+**Konstruktionshelfer** (ab der Bibliotheksversion nach 0.10, `rt.design`): Der Aufklapper über der
+Tabelle baut ein Singlet, ein verkittetes Dublett oder ein Triplet aus wenigen Zahlen: Radien (0 = plan),
+Dicken, bei einem Triplet zwei Luftabstände, Gläser, Abstand Blende → erste Fläche, Halbdurchmesser und
+Abstand letzte Fläche → Bild. Zahlen mit Dezimalpunkt, getrennt durch Komma, Semikolon oder Leerzeichen.
+Alternativ lädt man einen Linsenkatalog (JSON, Format `raytatouille-lenses`) und wählt eine Linse.
+„Als Flächentabelle übernehmen“ ersetzt die Tabelle; Wellenlängen, Feldpunkte und EPD bleiben. Die
+Bibliothek prüft das System; Fehler erscheinen als Meldung, die Tabelle bleibt dann unverändert. Die Blende
+liegt immer vor der ersten Linse (Radius EPD/2); eine Blende zwischen den Linsen stellt man danach in der
+Tabelle ein. Der Bildabstand ist eine Eingabe, kein paraxialer Fokus; dafür gibt es den Knopf unten.
+
 Hilfen: „Glas aus einem aktiven Katalog eintragen“ und der Knopf **Bildebene auf paraxialen Fokus
 setzen**, der die letzte Dicke anpasst.
 
