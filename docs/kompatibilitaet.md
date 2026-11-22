@@ -30,8 +30,24 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `interferogram` | `analysis.interferogram` | Pfade & Ghosts ohne Interferogramm | ab 0.8.0 (#210) |
 | `point_list` | `trace.PointListPupil` | Kein Raster „Punktliste“ im Strahlenbündel | ab 0.8.0 |
 | `object_medium` | `model.ObjectSpace.medium` | Layout färbt den Objektraum nicht ein (Dateien mit `object.medium`, Schema 0.7, lassen sich ohnehin nicht laden) | nach 0.8.0 (Schema 0.7, #282) |
+| `tolerance` | `raytatouille.tolerance` (`expand`, `sensitivity`, `monte_carlo`) | Keine Ansicht Toleranzen | ab 0.9.0 (#253–#260) |
+| `irradiance` | `analysis.irradiance_map` | Keine Bestrahlungsstärke einer Fläche | ab 0.10.0 (#379) |
+| `design` | `rt.design.singlet` | Keine Konstruktionshelfer im Baukasten | nach 0.10.0 (#321) |
+| `surface_types` | `model.Biconic`, `model.OddAsphere` (Axicon, Q-con, Q-bfs gehören dazu) | Dateien mit diesen Flächen lassen sich nicht laden | ab 0.10.0 (#314, #315) |
+| `freeform` | `model.ZernikeFringeSag` (XY-Polynom und Gitter gehören dazu) | Dateien mit Freiformtermen (Schema 0.11) lassen sich nicht laden | nach 0.10.0 (#316) |
+| `anamorphic_first_order` | `paraxial.first_order_section` | Keine erste Ordnung je Schnitt für anamorphe Systeme | ab 0.10.0 (#315) |
+| `aperture_shapes` | `model.PolygonAperture`, `model.CircularObscuration` | Layout zeichnet Polygone und Obskurationen nicht; Dateien damit (Schema 0.11) lassen sich nicht laden | nach 0.10.0 (#320) |
+| `inactive` | `model.Element.active` | Kein Schalter „aktiv“ je Bauteil | ab 0.10.0 (#380) |
+| `on_iteration` | `optim.IterationState` | Optimierung ohne Live-Verlauf | ab 0.10.0 (#378) |
+| `object_reference` | `model.ObjectSpace.reference` | Dateien mit `object.reference` (Schema 0.8) lassen sich nicht laden | ab 0.10.0 (#288) |
+| `stop_on_surface` | `model.SystemAperture.stop` | Dateien mit `aperture.stop` (Schema 0.8) lassen sich nicht laden | ab 0.10.0 (#53) |
+| `schemas` | `rt.schema` | Keine Schema-Prüfung der System-Datei | ab 0.10.0 (#386) |
 
 ## Getestet
+
+- 2026-11-22, Raytatouille `main` (0.10.0 plus 21 Commits, `82b0d63`), Linux, Python 3.13: alle Tests
+  grün; alle Flags vorhanden. Die Ansichten nutzen die neuen Flags noch nicht; sie sind nur erkannt
+  und in der Seitenleiste aufgelistet.
 
 Windows 11, Python 3.12, Streamlit 1.65, Bibliothek mit MSVC und vcpkg gebaut:
 

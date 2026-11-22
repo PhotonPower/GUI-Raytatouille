@@ -46,11 +46,24 @@ class Features:
     interferogram: bool = False  # analysis.interferogram (0.8)
     point_list: bool = False  # trace.PointListPupil (0.8)
     object_medium: bool = False  # model.ObjectSpace.medium, schema 0.7 (ADR 0037)
+    tolerance: bool = False  # raytatouille.tolerance: expand, sensitivity, monte_carlo (0.9)
+    irradiance: bool = False  # analysis.irradiance_map (0.10)
+    design: bool = False  # rt.design: singlet, doublet, triplet, lens catalogues (after 0.10)
+    surface_types: bool = False  # model.Biconic, Toroid, Cylinder, OddAsphere, Axicon, QCon, QBfs (0.10)
+    freeform: bool = False  # model.ZernikeFringeSag, XyPolynomial, GridSag (schema 0.11)
+    anamorphic_first_order: bool = False  # paraxial.first_order_section (0.10)
+    aperture_shapes: bool = False  # model.PolygonAperture and surface obscurations (schema 0.11)
+    inactive: bool = False  # Element.active, Assembly.active, schema 0.10
+    on_iteration: bool = False  # optim.IterationState, optimize(on_iteration=) (0.10)
+    object_reference: bool = False  # model.ObjectSpace.reference, schema 0.8
+    stop_on_surface: bool = False  # model.SystemAperture.stop, schema 0.8
+    schemas: bool = False  # rt.schema(): JSON schemas of the file formats (0.10)
 
     @classmethod
     def detect(cls) -> Features:
         analysis = getattr(rt, "analysis", None)
         trace = getattr(rt, "trace", None)
+        model = getattr(rt, "model", None)
         return cls(
             paths=_has_record_path(),
             layout=hasattr(rt, "layout"),
@@ -76,6 +89,20 @@ class Features:
             interferogram=hasattr(analysis, "interferogram"),
             point_list=hasattr(trace, "PointListPupil"),
             object_medium=hasattr(getattr(getattr(rt, "model", None), "ObjectSpace", None), "medium"),
+            tolerance=hasattr(getattr(rt, "tolerance", None), "monte_carlo")
+            and hasattr(rt.tolerance, "sensitivity")
+            and hasattr(rt.tolerance, "expand"),
+            irradiance=hasattr(analysis, "irradiance_map"),
+            design=hasattr(getattr(rt, "design", None), "singlet"),
+            surface_types=hasattr(model, "Biconic") and hasattr(model, "OddAsphere"),
+            freeform=hasattr(model, "ZernikeFringeSag"),
+            anamorphic_first_order=hasattr(getattr(rt, "paraxial", None), "first_order_section"),
+            aperture_shapes=hasattr(model, "PolygonAperture") and hasattr(model, "CircularObscuration"),
+            inactive=hasattr(getattr(model, "Element", None), "active"),
+            on_iteration=hasattr(getattr(rt, "optim", None), "IterationState"),
+            object_reference=hasattr(getattr(model, "ObjectSpace", None), "reference"),
+            stop_on_surface=hasattr(getattr(model, "SystemAperture", None), "stop"),
+            schemas=hasattr(rt, "schema"),
         )
 
     def rows(self) -> list[tuple[str, bool]]:
@@ -104,6 +131,18 @@ class Features:
             ("Interferogramm zweier Pfade", self.interferogram),
             ("Pupillenpunkte als Liste", self.point_list),
             ("Medium im Objektraum (Schema 0.7)", self.object_medium),
+            ("Toleranzierung (rt.tolerance)", self.tolerance),
+            ("Bestrahlungsstärke (analysis.irradiance_map)", self.irradiance),
+            ("Konstruktionshelfer (rt.design)", self.design),
+            ("Flächentypen: anamorph, Odd Asphere, Axicon, Forbes", self.surface_types),
+            ("Freiformterme: Zernike, XY-Polynom, Gitter (Schema 0.11)", self.freeform),
+            ("Erste Ordnung je Schnitt (anamorph)", self.anamorphic_first_order),
+            ("Aperturformen und Obskurationen (Schema 0.11)", self.aperture_shapes),
+            ("Aktiv-Flag an Bauteilen (Schema 0.10)", self.inactive),
+            ("Zwischenstand der Optimierung (on_iteration)", self.on_iteration),
+            ("Objektbezug auf eine Fläche (Schema 0.8)", self.object_reference),
+            ("Blende auf einer Fläche (Schema 0.8)", self.stop_on_surface),
+            ("JSON-Schemas (rt.schema)", self.schemas),
         ]
 
 
