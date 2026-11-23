@@ -34,6 +34,24 @@ Einheiten: Längen in mm, Wellenlängen in µm, Felder in Grad. Die optische Ach
 | Material danach | `AIR`, `CONST:1.5168` oder `KATALOG:GLAS` (z. B. `SCHOTT:N-BK7`) |
 | Halbdurchm. | Halber freier Durchmesser, 0 = frei |
 | Coating | optional `KATALOG:NAME`, z. B. `DEMO:AR_MGF2` |
+| Form, Form-Parameter | optional (ab Raytatouille 0.10): `Biconic`, `Toroid`, `Zylinder`, `Odd Asphere`, `Axicon`, `Forbes Q-con`, `Forbes Q-bfs`; leer heißt Kugel oder Konik. Weitere Werte als `schlüssel=wert`, getrennt durch Semikolon, Listen mit Komma |
+
+**Flächenformen** (Spalte Form; die Datei bekommt Schema 0.9.0). Radius und Konik der Zeile gelten für die
+Hauptrichtung, alles Weitere steht in den Form-Parametern:
+
+| Form | Radius, Konik | Form-Parameter |
+| --- | --- | --- |
+| Biconic | x-Schnitt (Radius ≠ 0) | `radius_y` (Pflicht), `conic_y` |
+| Toroid | Profil im y-z-Schnitt (Radius ≠ 0) | `radius_of_rotation` (Pflicht), `coefficients` (A4, A6, …) |
+| Zylinder | Profil im y-z-Schnitt, flach in x (Radius ≠ 0) | `coefficients` |
+| Odd Asphere | Krümmung 1/Radius (Radius 0 = plane Basis) | `coefficients` (A1, A2, …; mindestens einer) |
+| Axicon | beide 0 | `angle_deg` (Pflicht, −90° bis 90°) |
+| Forbes Q-con, Q-bfs | Krümmung 1/Radius | `normalization_radius` (Pflicht, > 0), `coefficients` (a0, a1, …) |
+
+Beispiel: Biconic mit Radius 40, Konik −0,5 und `radius_y=-60`. Die Spalten R var und k var gelten für
+Radius und Konik (bei Odd Asphere, Q-con und Q-bfs nur k var, weil dort die Krümmung die Größe ist). Die
+Freiformterme (Zernike, XY-Polynom, Gitter) lassen sich im Baukasten nicht eintragen; geladene Dateien
+mit ihnen zeigt die Ansicht Modell. Der Helfer-Aufklapper erzeugt weiter nur Kugel und Konik.
 
 Regeln: Genau eine Blende (in Luft) und genau eine Bildzeile am Ende. Das Glas steht in der Zeile der
 ersten Linsenfläche; die Fläche, die wieder in Luft führt, schließt die Linse ab. Aufeinanderfolgende
@@ -77,8 +95,10 @@ setzen**, der die letzte Dicke anpasst.
 
 ## Kopfzeile
 
-Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Darunter ein
-Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
+Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Bei einem anamorphen
+System (Biconic, Toroid, Zylinder; ab Raytatouille 0.10) gibt es kein rotationssymmetrisches `first_order`;
+die Kopfzeile zeigt dann EFL, BFL und Bildebene je Hauptschnitt als „x | y“ (`–` heißt afokal im Schnitt).
+Darunter ein Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
 
 ## Ansichten
 
@@ -265,7 +285,8 @@ und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher lei
 
 **Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt,
 Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
-Wechselwirkung, Phase), die Pfade mit ihren Ereignissen sowie Parametertabelle und
+Wechselwirkung, Phase; die Form nennt auch Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Q-con, Q-bfs und
+Freiformterme wie Zernike, XY-Polynom und Gitter), die Pfade mit ihren Ereignissen sowie Parametertabelle und
 Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Ideale
 Linsen stehen mit Brennweite, Objektabstand und bei Zylinderlinsen mit Achse in der Spalte
 Wechselwirkung. Nur lesen.

@@ -40,23 +40,60 @@ def param_text(p) -> str:
     return num(p.value) + (" V" if getattr(p, "variable", False) else "")
 
 
+TERM_LABELS = {"ZernikeSag": "Zernike", "ZernikeFringeSag": "Zernike-Fringe", "XyPolynomial": "XY-Polynom",
+               "GridSag": "Gitter"}
+
+CURVATURE_FORMS = {"OddAsphere": "Odd Asphere", "QCon": "Forbes Q-con", "QBfs": "Forbes Q-bfs"}
+
+
+def _radius_of_curvature(c) -> str:
+    """Radius 1/c of a curvature Param (``∞`` for 0, `` V`` for a variable, ``c → NAME`` for a bound row)."""
+    if getattr(c, "param", None):
+        return f"c → {c.param}"
+    value = _plain(c)
+    text = "∞" if not value else num(1.0 / float(value))
+    return text + (" V" if getattr(c, "variable", False) else "")
+
+
+def _coefficients(base) -> str:
+    return f"{len(base.coefficients)} Koeff."
+
+
 def shape_text(stack) -> tuple[str, str, str]:
     """(form, radius, conic) of a model.ShapeStack."""
     base = stack.base
     kind = type(base).__name__
     if kind == "Plane":
         form, radius, conic = "plan", "∞", ""
-    else:
+    elif kind == "Biconic":
+        form = "anamorph (Biconic)"
+        radius = f"{param_text(base.radius_x)} / {param_text(base.radius_y)}"
+        conic = f"{param_text(base.conic_x)} / {param_text(base.conic_y)}"
+    elif kind in CURVATURE_FORMS:
+        form = f"{CURVATURE_FORMS[kind]} ({_coefficients(base)})"
+        radius, conic = _radius_of_curvature(base.curvature), param_text(base.conic)
+    elif kind == "Axicon":
+        form, radius, conic = f"Axicon ({num(base.angle_deg)}°)", "", ""
+    elif hasattr(base, "radius"):
         radius, conic = param_text(base.radius), param_text(base.conic)
         if kind == "EvenAsphere":
-            form = f"Asphäre ({len(base.coefficients)} Koeff.)"
+            form = f"Asphäre ({_coefficients(base)})"
         elif kind == "Conic":
             form = "sphärisch/konisch"
+        elif kind == "Toroid":
+            form = f"Toroid (Rotationsradius {param_text(base.radius_of_rotation)}, {_coefficients(base)})"
+        elif kind == "Cylinder":
+            form = "Zylinder" + (f" ({_coefficients(base)})" if len(base.coefficients) else "")
         else:
             form = kind
-    terms = len(getattr(stack, "terms", []) or [])
+    else:
+        form, radius, conic = kind, "", ""
+    terms = list(getattr(stack, "terms", []) or [])
     if terms:
-        form += f" + {terms} Zusatzterm" + ("e" if terms > 1 else "")
+        form += f" + {len(terms)} Zusatzterm" + ("e" if len(terms) > 1 else "")
+        names = [TERM_LABELS[type(t).__name__] for t in terms if type(t).__name__ in TERM_LABELS]
+        if names:
+            form += f" ({', '.join(names)})"
     return form, radius, conic
 
 

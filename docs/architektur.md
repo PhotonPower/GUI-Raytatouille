@@ -42,6 +42,7 @@ flowchart TD
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende, Schnitt der Achsenlinie mit Polygonaperturen und Obskurationen | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
+| `surface_shapes` | Flächenformen des Baukastens (Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Forbes): Form-Parameter lesen, `shape.base` der Datei | nein |
 | `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |
 | `progress_run` | Eine Bibliotheksrechnung in einem Thread ausführen und ihren Fortschritt im Skript-Thread abfragen (Fortschrittsbalken) | nein |
 | `tolerance_table` | Toleranz-Items, Sensitivität und Monte Carlo als Tabellenzeilen, Ausbeutetext, Obergrenze der Prüflinge | nein |

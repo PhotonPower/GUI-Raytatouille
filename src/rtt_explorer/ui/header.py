@@ -16,8 +16,27 @@ def first_order(comp, path: str):
     try:
         return rt.paraxial.first_order(comp, path=path)
     except rt.RaytatouilleError as error:
+        if anamorphic_sections(comp, path) is not None:
+            return None  # render_header shows the data per section instead
         st.info(f"Paraxiale Kenndaten nicht verfügbar: {error}. Layout, Strahlen und Polarisation "
                 "funktionieren trotzdem.")
+        return None
+
+
+def anamorphic_sections(comp, path: str):
+    """``(first order in x, first order in y)`` of an anamorphic path (library 0.10), else ``None``.
+
+    ``paraxial.first_order`` has no answer there (ADR 0042); ``first_order_section`` gives the two
+    principal sections. ``None`` also when the sections themselves are not defined (decentred surfaces)."""
+    paraxial = rt.paraxial
+    if not (hasattr(paraxial, "is_anamorphic") and hasattr(paraxial, "first_order_section")):
+        return None
+    try:
+        if not paraxial.is_anamorphic(comp, path):
+            return None
+        return tuple(paraxial.first_order_section(comp, path=path, section=section)
+                     for section in (paraxial.Section.X, paraxial.Section.Y))
+    except (rt.RaytatouilleError, ValueError):
         return None
 
 
@@ -37,6 +56,21 @@ def render_header(ctx: AppContext) -> None:
         ss.focus_shift = None
         if builder_context is not None:
             ss.focus_shift = fo.rear_focal_z - builder_context["rows"][-1]["z"]
+
+    elif (sections := anamorphic_sections(comp, ctx.path_choice)) is not None:
+        fx, fy = sections
+
+        def both(getter) -> str:
+            return f"{fmt(getter(fx))} | {fmt(getter(fy))}"
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Brennweite EFL (x | y)", f"{both(lambda f: f.efl)} mm")
+        c2.metric("Schnittweite BFL (x | y)", f"{both(lambda f: f.bfl)} mm")
+        c3.metric("Eintrittspupille Ø", f"{fmt(ctx.epd_value)} mm")
+        c4.metric("Paraxiale Bildebene z (x | y)", f"{both(lambda f: f.rear_focal_z)} mm")
+        st.caption("Anamorphes System: Die Kenndaten gelten je Hauptschnitt (x und y), "
+                   "`–` heißt afokal im Schnitt.")
+        ss.focus_shift = None
 
     if builder_context is not None and ss.get("focus_shift") is not None:
         st.write(f"Die Bildebene liegt {ss.focus_shift:+.4f} mm neben dem paraxialen Fokus.")

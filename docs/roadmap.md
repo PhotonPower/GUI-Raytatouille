@@ -23,6 +23,8 @@ Vorschlag, keine Zusage.
 - **Toleranzierung (0.9):** Ansicht Toleranzen mit Items, Sensitivität (RSS, inverse Sensitivität) und Monte Carlo.
 
 - **Bestrahlungsstärke (0.10):** Ansicht Bestrahlungsstärke mit Footprint auf jeder Fläche des Pfads.
+- **Flächentypen (0.10):** Modell, Kopfzeile (Kennzahlen je Schnitt) und Baukasten kennen Biconic, Toroid,
+  Zylinder, Odd Asphere, Axicon und Forbes; Freiformterme zeigt nur die Ansicht Modell.
 
 ## Bekannte Grenzen
 
@@ -46,6 +48,10 @@ Vorschlag, keine Zusage.
   läuft aber nicht in der CI.
 
 ## Ideen
+
+- Freiformterme (Zernike, XY-Polynom, Gitter) im Baukasten eintragen; Presets und Konstruktionshelfer für
+  anamorphe Flächen. Die Ansichten Prescription, Seidel und Optimierung zeigen bei anamorphen Systemen nur die
+  Meldung der Bibliothek.
 
 - Ansicht für G7 (Through-Focus-Spot), sobald die Bibliothek sie liefert.
 - Eingeschlossene Energie mit einem Aufruf, sobald die Bibliothek `radius_max` vorab liefert

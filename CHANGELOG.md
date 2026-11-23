@@ -7,6 +7,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- **Neue Flächentypen** (Bibliothek ab 0.10, Feature-Flag `surface_types`): Die Ansicht Modell benennt Biconic, Toroid,
+  Zylinder, Odd Asphere, Axicon, Forbes Q-con und Q-bfs sowie Freiformterme (Zernike, XY-Polynom, Gitter); sie
+  brach bei diesen Typen vorher mit einem Fehler ab. Die Kopfzeile zeigt bei anamorphen Systemen EFL, BFL und
+  Bildebene je Schnitt (`paraxial.first_order_section`). Der Baukasten hat die Spalten Form und Form-Parameter
+  (Schema 0.9.0), reines Modul `surface_shapes`. Im Layout zeichnet die Bibliothek diese Flächen schon selbst.
 - Neue Ansicht **Bestrahlungsstärke** (Bibliothek ab 0.10, Feature-Flag `irradiance`): der Footprint auf jeder Fläche
   des Pfads aus `analysis.irradiance_map`, mit Wahl von Fläche und Besuch (Doppelpass), Bereich aus den Strahlen,
   der Apertur oder frei, bis 100 000 Strahlen für jede Fläche und bis 4 Mio. für die letzte, Liste der nicht

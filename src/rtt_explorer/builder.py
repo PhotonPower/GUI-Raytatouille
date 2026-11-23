@@ -12,11 +12,15 @@ import re
 
 import pandas as pd
 
+from .surface_shapes import FORMS, parse_extra, shape_base
+
 AIR_WORDS = {"", "AIR", "VACUUM"}
 BUILDER_COLUMNS = ["Typ", "Radius_mm", "Konik", "Dicke_mm", "Material_danach", "Halbdurchm_mm",
                    "Coating"]
 # Optional check box columns: radius, conic constant and thickness of the row are optimization variables.
 VARIABLE_COLUMNS = ["R_var", "K_var", "D_var"]
+# Optional columns for surface forms beyond sphere and conic (biconic, toroid, ...); missing means a plain conic.
+SHAPE_COLUMNS = ["Form", "Form_Parameter"]
 MERIT_COLUMNS = ["Operand", "Ziel", "Gewicht"]
 # Merit table label -> (operand or generator, file entry without path/target/weight, needs a target)
 MERIT_OPERANDS = {
@@ -84,7 +88,14 @@ def surface_rows(df: pd.DataFrame) -> list[dict]:
         if typ not in ROW_TYPES:
             raise ValueError(f"Zeile {i + 1}: Typ muss Fläche, Blende, Ideallinse oder Bild sein.")
         coating = r.get("Coating")
+        form = r.get("Form")
+        form = "" if form is None or (isinstance(form, float) and math.isnan(form)) else str(form).strip()
+        if form not in FORMS:
+            raise ValueError(f"Zeile {i + 1}: Form muss leer oder eine von {', '.join(FORMS[1:])} sein.")
+        if form and typ != "Fläche":
+            raise ValueError(f"Zeile {i + 1}: Die Form gilt nur für Zeilen vom Typ Fläche.")
         row = {
+            "form": form, "extra": parse_extra(r.get("Form_Parameter"), form, i + 1) if form else {},
             "i": i, "typ": typ, "radius": num(r.get("Radius_mm")), "conic": num(r.get("Konik")),
             "t": num(r.get("Dicke_mm"), float("nan")),
             "mat": str(r.get("Material_danach") or "AIR").strip(),
@@ -224,10 +235,14 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
         z_rel = position(first_index, row["i"], row["z"] - first_z, f"Z{row['i'] + 1}REL")
         if z_rel != 0.0:
             surface["pose"] = {"position": [0.0, 0.0, z_rel]}
-        if (row["r_var"] or row["k_var"]) and row["radius"] == 0.0:
+        if (row["r_var"] or row["k_var"]) and row["radius"] == 0.0 and not row["form"]:
             raise ValueError(f"Zeile {row['i'] + 1}: Eine plane Fläche (Radius 0) kann nicht variabel sein; "
                              "einen Startradius eintragen (z. B. 1000).")
-        if row["radius"] != 0.0:
+        if row["form"]:
+            radius = variable("R", row, row["radius"]) if row["r_var"] else row["radius"]
+            conic = variable("K", row, row["conic"]) if row["k_var"] else row["conic"]
+            surface["shape"] = {"base": shape_base(row["form"], radius, conic, row["extra"], row["i"] + 1)}
+        elif row["radius"] != 0.0:
             radius = variable("R", row, row["radius"]) if row["r_var"] else row["radius"]
             base = {"type": "conic", "radius": radius}
             if row["k_var"]:
@@ -335,4 +350,6 @@ def build_system_dict(name: str, epd: float, wl_df: pd.DataFrame, field_df: pd.D
             system["optimization"] = optimization
     if ideal_no:
         system["schema_version"] = "0.5.0"  # the ideal lens exists from schema 0.5.0 on
+    if any(row["form"] for row in rows):
+        system["schema_version"] = "0.9.0"  # biconic, toroid, odd asphere, ... exist from schema 0.9.0 on
     return system
