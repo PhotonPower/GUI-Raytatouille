@@ -307,4 +307,9 @@ Linsen stehen mit Brennweite, Objektabstand und bei Zylinderlinsen mit Achse in 
 Wechselwirkung. Nur lesen.
 
 **System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`; bei Konfigurationen
-auch die gewählte Konfiguration mit festen Werten.
+auch die gewählte Konfiguration mit festen Werten. Der Aufklapper **JSON-Schema des Dateiformats** (ab Raytatouille
+0.10, `rt.schema`) bietet die Schemas von System, Ergebnis, Coating-Katalog und Linsenkatalog zum Herunterladen an
+und prüft mit „Datei gegen das Schema prüfen“ das System, wie es geladen wurde (also mit eingeschalteten
+Bauteilen und übernommenem Optimierungsergebnis), gegen das Schema: eine Tabelle mit Stelle (JSON-Zeiger) und
+Meldung, höchstens 50 Zeilen. Die Prüfung braucht das Paket `jsonschema` (`pip install jsonschema` oder der Extra
+`schema`); ohne es erscheint ein Hinweis. Die inhaltliche Prüfung macht weiter die Bibliothek beim Laden.

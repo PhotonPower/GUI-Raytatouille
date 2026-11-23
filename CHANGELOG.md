@@ -7,6 +7,9 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Ansicht System-Datei: Aufklapper **JSON-Schema des Dateiformats** (`rt.schema`, Feature-Flag `schemas`) mit Download der
+  vier Schemas und einer Prüfung der Datei gegen das Schema (reines Modul `schema_check`; optionales Paket
+  `jsonschema`, Extra `schema`).
 - Ansicht Modell: Unter den Kennzahlen steht, wenn die **Blende auf einer Fläche** liegt (`aperture.stop`), und bei
   einer objektseitigen NA, ob sie **paraxial oder real gelesen** wird (`aperture.reading`).
 - Ansicht Modell: Das Objekt zeigt bei endlichem Abstand seinen **Bezug** (`object.reference`, Schema 0.8), z. B.

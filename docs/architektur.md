@@ -42,6 +42,7 @@ flowchart TD
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende, Schnitt der Achsenlinie mit Polygonaperturen und Obskurationen | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
+| `schema_check` | System gegen das JSON-Schema prüfen (Stelle, Meldung); braucht das optionale Paket `jsonschema` | nein |
 | `active_nodes` | Bauteile ein- und ausschalten: Knotenliste des Modellbaums, `active` in der Systemdatei setzen | nein |
 | `surface_shapes` | Flächenformen des Baukastens (Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Forbes): Form-Parameter lesen, `shape.base` der Datei | nein |
 | `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |

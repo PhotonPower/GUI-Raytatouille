@@ -52,6 +52,7 @@ pip install -e ./GUI-Raytatouille
 ```
 
 Ohne Installation genügt `pip install -r requirements.txt` und `streamlit run streamlit_app.py`.
+Für die Schema-Prüfung in der Ansicht System-Datei gibt es den Extra `pip install -e ".[schema]"` (`jsonschema`).
 Der Extra `pip install -e ".[lib]"` holt die Bibliothek direkt aus GitHub (braucht dieselben
 Systempakete wie oben).
 
