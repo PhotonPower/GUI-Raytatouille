@@ -40,24 +40,99 @@ def param_text(p) -> str:
     return num(p.value) + (" V" if getattr(p, "variable", False) else "")
 
 
+TERM_LABELS = {"ZernikeSag": "Zernike", "ZernikeFringeSag": "Zernike-Fringe", "XyPolynomial": "XY-Polynom",
+               "GridSag": "Gitter"}
+
+CURVATURE_FORMS = {"OddAsphere": "Odd Asphere", "QCon": "Forbes Q-con", "QBfs": "Forbes Q-bfs"}
+
+
+def _radius_of_curvature(c) -> str:
+    """Radius 1/c of a curvature Param (``∞`` for 0, `` V`` for a variable, ``c → NAME`` for a bound row)."""
+    if getattr(c, "param", None):
+        return f"c → {c.param}"
+    value = _plain(c)
+    text = "∞" if not value else num(1.0 / float(value))
+    return text + (" V" if getattr(c, "variable", False) else "")
+
+
+def _coefficients(base) -> str:
+    return f"{len(base.coefficients)} Koeff."
+
+
 def shape_text(stack) -> tuple[str, str, str]:
     """(form, radius, conic) of a model.ShapeStack."""
     base = stack.base
     kind = type(base).__name__
     if kind == "Plane":
         form, radius, conic = "plan", "∞", ""
-    else:
+    elif kind == "Biconic":
+        form = "anamorph (Biconic)"
+        radius = f"{param_text(base.radius_x)} / {param_text(base.radius_y)}"
+        conic = f"{param_text(base.conic_x)} / {param_text(base.conic_y)}"
+    elif kind in CURVATURE_FORMS:
+        form = f"{CURVATURE_FORMS[kind]} ({_coefficients(base)})"
+        radius, conic = _radius_of_curvature(base.curvature), param_text(base.conic)
+    elif kind == "Axicon":
+        form, radius, conic = f"Axicon ({num(base.angle_deg)}°)", "", ""
+    elif hasattr(base, "radius"):
         radius, conic = param_text(base.radius), param_text(base.conic)
         if kind == "EvenAsphere":
-            form = f"Asphäre ({len(base.coefficients)} Koeff.)"
+            form = f"Asphäre ({_coefficients(base)})"
         elif kind == "Conic":
             form = "sphärisch/konisch"
+        elif kind == "Toroid":
+            form = f"Toroid (Rotationsradius {param_text(base.radius_of_rotation)}, {_coefficients(base)})"
+        elif kind == "Cylinder":
+            form = "Zylinder" + (f" ({_coefficients(base)})" if len(base.coefficients) else "")
         else:
             form = kind
-    terms = len(getattr(stack, "terms", []) or [])
+    else:
+        form, radius, conic = kind, "", ""
+    terms = list(getattr(stack, "terms", []) or [])
     if terms:
-        form += f" + {terms} Zusatzterm" + ("e" if terms > 1 else "")
+        form += f" + {len(terms)} Zusatzterm" + ("e" if len(terms) > 1 else "")
+        names = [TERM_LABELS[type(t).__name__] for t in terms if type(t).__name__ in TERM_LABELS]
+        if names:
+            form += f" ({', '.join(names)})"
     return form, radius, conic
+
+
+def object_text(objects, object_z: float | None = None) -> tuple[str, str | None]:
+    """(value, help) of the object in the model view: infinity, or the distance with its reference.
+
+    Without a reference the distance counts from the global origin; with ``reference.surface`` (schema 0.8)
+    from the nominal vertex of that surface, both along −z. ``object_z`` is the global z of the object from the
+    compiled system and is added to the help when given."""
+    if objects.at_infinity:
+        return "unendlich", None
+    distance = param_text(objects.distance)
+    surface = getattr(getattr(objects, "reference", None), "surface", None)
+    if surface:
+        value = f"{distance} mm vor {surface}"
+        help_text = f"Abstand vor dem nominalen Scheitel der Fläche {surface} längs −z"
+    else:
+        value, help_text = f"{distance} mm", "Abstand vom globalen Ursprung längs −z"
+    if object_z is not None:
+        help_text += f"; das Objekt liegt bei z = {num(object_z)} mm"
+    return value, help_text
+
+
+def aperture_notes(aperture) -> list[str]:
+    """Explanations of the system aperture beyond its type and value (empty for the plain case).
+
+    ``aperture.stop`` (schema 0.8) makes the aperture of a lens, mirror, plate or thin element surface the stop;
+    ``aperture.reading`` (schema 0.8) says how an object-space NA is read: paraxial u = NA / n (default) or real
+    n sin U = NA at the marginal ray."""
+    notes = []
+    surface = getattr(getattr(aperture, "stop", None), "surface", None)
+    if surface:
+        notes.append(f"Blende: die Apertur der Fläche {surface} (aperture.stop); ohne sie gilt das Blendenelement")
+    if getattr(getattr(aperture, "type", None), "name", "") == "OBJECT_SPACE_NA":
+        if getattr(getattr(aperture, "reading", None), "name", "PARAXIAL") == "REAL":
+            notes.append("NA real gelesen: der Randstrahl hat n·sin U = NA (aperture.reading)")
+        else:
+            notes.append("NA paraxial gelesen: u = NA / n (Standard)")
+    return notes
 
 
 def aperture_text(aperture) -> str:

@@ -20,14 +20,26 @@ Vorschlag, keine Zusage.
   und Fokusverschiebung in der Wellenfront; ideale Linse (Modell, Layout, Baukasten), Jones-Pupille
   und Stokes-Karte, Interferogramm zweier Pfade, Pupillenpunkte als Liste.
 
+- **Toleranzierung (0.9):** Ansicht Toleranzen mit Items, Sensitivität (RSS, inverse Sensitivität) und Monte Carlo.
+
+- **Bestrahlungsstärke (0.10):** Ansicht Bestrahlungsstärke mit Footprint auf jeder Fläche des Pfads.
+- **Flächentypen (0.10):** Modell, Kopfzeile (Kennzahlen je Schnitt) und Baukasten kennen Biconic, Toroid,
+  Zylinder, Odd Asphere, Axicon und Forbes; Freiformterme zeigt nur die Ansicht Modell.
+- **Aktiv-Flag (0.10):** Bauteile lassen sich im Aufklapper über dem Systemnamen ein- und ausschalten.
+
 ## Bekannte Grenzen
 
 - **Kein Modelleditor (G3):** Die Bibliothek kann das Modell mit `rt.Editor` ändern (JSON Patch,
   Undo, Redo); der Explorer liest es nur. Der Baukasten erzeugt weiter JSON aus einer Tabelle.
+- **Toleranzen (0.9):** Die Ansicht liest den Satz nur; Klasse, Kriterien und Kompensatoren lassen sich nicht
+  bearbeiten, und die Prüflinge sind auf 5000 begrenzt. Es gibt einen Fortschrittsbalken, aber keinen Abbruchknopf.
 - **Kein Abbruch, kein Fortschritt (G4):** Die Bibliothek bietet `cancel=` und `progress=`; der
   Explorer nutzt sie noch nicht, weil Streamlit aus den Rechen-Threads der Bibliothek nicht zeichnen
-  darf. Große Rechnungen blockieren die Bedienung.
-- **Kein Footprint, keine automatische freie Öffnung (G6).**
+  darf. Große Rechnungen blockieren die Bedienung. Nur die Optimierung zeigt ihren Verlauf live
+  (`on_iteration`, ab 0.10); ein Abbruchknopf fehlt weiter, weil Streamlit während des Laufs keine
+  Eingaben annimmt.
+- **Keine automatische freie Öffnung (G6).** Der Footprint auf einer Fläche steht in der Ansicht
+  Bestrahlungsstärke (Pupille mit Blende; ein freies Bündel gibt es dort nicht).
 - **Merit-Funktion:** Im Baukasten gibt es eine Auswahl gängiger Operanden; alle Operandentypen,
   Grenzen von Variablen und Konfigurationen nur in der `.rtt.json`.
 - **Optimierung und Mehrpfad-Systeme** nur so weit, wie die Bibliothek sie anbietet (z. B. keine
@@ -38,7 +50,11 @@ Vorschlag, keine Zusage.
 
 ## Ideen
 
-- Ansichten für G6 und G7 (Footprint, Through-Focus-Spot), sobald die Bibliothek sie liefert.
+- Freiformterme (Zernike, XY-Polynom, Gitter) im Baukasten eintragen; Presets und Konstruktionshelfer für
+  anamorphe Flächen. Die Ansichten Prescription, Seidel und Optimierung zeigen bei anamorphen Systemen nur die
+  Meldung der Bibliothek.
+
+- Ansicht für G7 (Through-Focus-Spot), sobald die Bibliothek sie liefert.
 - Eingeschlossene Energie mit einem Aufruf, sobald die Bibliothek `radius_max` vorab liefert
   (Raytatouille #267).
 - Modell bearbeiten mit `rt.Editor` (Undo, Redo, Verlauf als Skript), statt nur Tabelle zu JSON.

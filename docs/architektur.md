@@ -35,12 +35,21 @@ flowchart TD
 | `repo`, `colors`, `stretch` | Repo-Suche, Spektralfarben, Streamlit-Breitenschalter | nein |
 | `messages` | Diagnosen mit Code und Flächenname, Tabelle verlorener Strahlen | nein |
 | `model_table` | Modellbaum (`System.root`) als Tabellenzeilen | nein |
+| `optim_live` | Optimierung: Zwischenstände sammeln und das Neuzeichnen drosseln (`on_iteration`) | nein |
 | `optim_table` | Merit-Funktion, Variablen und Optimierungsstatus als Tabellenzeilen | nein |
 | `diffraction` | Anzeige-Näherungen (Airy-Radius, Rayleigh-Tiefe), Radien, Fokuslagen, Zernike-Namen | nein |
 | `pupil_points` | Pupillenpunkt-Listen lesen, nächster Strahl zu einem Punkt, Text von Jones-Matrixelementen | nein |
-| `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende | nein |
+| `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende, Schnitt der Achsenlinie mit Polygonaperturen und Obskurationen | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
+| `schema_check` | System gegen das JSON-Schema prüfen (Stelle, Meldung); braucht das optionale Paket `jsonschema` | nein |
+| `active_nodes` | Bauteile ein- und ausschalten: Knotenliste des Modellbaums, `active` in der Systemdatei setzen | nein |
+| `surface_shapes` | Flächenformen des Baukastens (Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Forbes): Form-Parameter lesen, `shape.base` der Datei | nein |
+| `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |
+| `progress_run` | Eine Bibliotheksrechnung in einem Thread ausführen und ihren Fortschritt im Skript-Thread abfragen (Fortschrittsbalken) | nein |
+| `tolerance_table` | Toleranz-Items, Sensitivität und Monte Carlo als Tabellenzeilen, Ausbeutetext, Obergrenze der Prüflinge | nein |
+| `irradiance_logic` | Bestrahlungsstärke: Besuche einer Fläche, Strahlgrenzen, Tabelle der nicht gezählten Strahlen | nein |
+| `irradiance_rays` | Bestrahlungsstärke: Strahlen verfolgen, Treffer lokal, Bereich, Karte der Bibliothek; braucht `raytatouille`, kein Streamlit | ja |
 | `layout_zoom` | Zoom-Fenster der Layout-Zeichnung: Prüfung eines Ausschnitts, Fenster um die Quelle und vor der Bildebene, Startpunkt und Bildebene aus den Strahlen | nein |
 | `compat` | `Features`: erkennt optionale Funktionen der Bibliothek | ja |
 | `loader` | `make_library`, `make_coatings`, `make_system` mit `st.cache_resource` | ja |
@@ -65,6 +74,17 @@ flowchart TD
 - Widget-Schlüssel der Wellenfront- und Beugungsansicht: `opd_focus`, `opd_terms` und `diff_*`
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
+- Bauteile ein- und ausschalten (`ui.active_nodes`): ein Kästchen je Knoten mit dem Schlüssel `act_<Hash des Systemtextes>_<JSON-Zeiger>`.
+- Konstruktionshelfer im Baukasten (`ui.design_helper`): `design_source`, `design_stop`, `design_sd`, `design_apply`,
+  `design_kind`, je Art `design_image_{kind}`, `design_radii_{kind}`, `design_thick_{kind}`, `design_gaps_triplet`,
+  `design_materials_{kind}` (`kind` = `singlet`, `doublet`, `triplet`) und für Kataloge `design_image_catalog`,
+  `design_catalog`, `design_entry`. Der Helfer schreibt `bdf`, `bver` und `bedited` (wie der Glas-Picker).
+- Bestrahlungsstärke: Widget-Schlüssel `irr_field`, `irr_wl`, `irr_aim`, `irr_surface`, `irr_event`, `irr_rays`, `irr_nx`,
+  `irr_ny`, `irr_extent`, `irr_x0`, `irr_x1`, `irr_y0`, `irr_y1`, `irr_scale`, `irr_cmap` und die Download-Schlüssel
+  `irr_csv`, `irr_json`.
+- Toleranzen: Widget-Schlüssel `tol_confirm`, `tol_run_sens`, `tol_crit`, `tol_trials`, `tol_seed`, `tol_run_mc`, `tol_mc_crit`,
+  `tol_mc_bins` und die Download-Schlüssel `tol_sens_json`, `tol_mc_csv`, `tol_mc_json`; Ergebnisse in `tol_sens` und
+  `tol_mc` (je `(Schlüssel, Ergebnis)` wie `optim_result`; der Schlüssel enthält `ctx.system_key`).
 - Weitere Widget-Schlüssel ab 0.8: `jones_grid`, `jones_basis` (Polarisation), `fringe_rings` (Pfade &
   Ghosts), `bundle_points` (Strahlenbündel), `layout_all_paths` (Layout), `layout_truncate_lost` (Layout).
 - Detektorbild: Widget-Schlüssel `detimg_field`, `detimg_wl`, `detimg_rays`, `detimg_aim`, `detimg_source`,

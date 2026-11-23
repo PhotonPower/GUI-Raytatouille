@@ -29,7 +29,8 @@ dependencies = [
 
 [project.optional-dependencies]
 lib = ["raytatouille[plot] @ git+https://github.com/PhotonPower/Raytatouille.git"]
-dev = ["pytest>=8", "ruff>=0.6"]
+schema = ["jsonschema>=4"]
+dev = ["pytest>=8", "ruff>=0.6", "jsonschema>=4"]
 
 [project.scripts]
 rtt-explorer = "rtt_explorer.cli:main"

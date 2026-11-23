@@ -11,6 +11,7 @@ from .catalogs import coating_refs, material_refs
 from .compat import FEATURES
 from .context import AppContext
 from .loader import configuration_names, make_system
+from .ui.active_nodes import active_nodes
 from .ui.catalog_select import select_catalogs
 from .ui.header import first_order, render_header
 from .ui.sidebar import collect_catalogs, project_sidebar
@@ -59,6 +60,7 @@ def run() -> None:
     candidates, coat_candidates = collect_catalogs(project.repo, project.repo_ok)
     json_text, source_key, builder_context = system_source(project.mode, project.repo)
     json_text = _optimized_override(source_key, json_text)
+    json_text = active_nodes(json_text)
 
     system_dict = json.loads(json_text)
     refs = material_refs(system_dict)

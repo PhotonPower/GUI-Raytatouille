@@ -142,3 +142,75 @@ def object_space_polygon(z_source: float, profile, half_height: float | None = N
     height = float(np.abs(profile[:, 1]).max()) if half_height is None else float(half_height)
     ordered = profile[np.argsort(-profile[:, 1], kind="stable")]
     return np.vstack([[z_source, height], ordered, [z_source, -height]])
+
+
+def _section_axes(plane: str) -> tuple[int, int]:
+    """(index of the coordinate that is 0 on the section line, index of the lateral coordinate) in local (x, y).
+
+    The section "yz" cuts along the local y axis at x = 0, "xz" along the local x axis at y = 0."""
+    return (0, 1) if plane == "yz" else (1, 0)
+
+
+def polygon_section_intervals(vertices, plane: str) -> list[tuple[float, float]]:
+    """Intervals ``(lo, hi)`` of the lateral coordinate where the section line through the axis lies inside a polygon.
+
+    ``vertices`` is ``SurfaceLayout.aperture_vertices`` ((n, 2) in mm, local frame). The line is x = 0 for the
+    section "yz" and y = 0 for "xz"; the result follows the even-odd rule, so a concave polygon can give several
+    intervals, and an empty list means the line misses the polygon. ``ValueError`` for fewer than 3 vertices."""
+    pts = np.asarray(vertices, dtype=float)
+    if pts.ndim != 2 or pts.shape[1] != 2 or len(pts) < 3:
+        raise ValueError("Ein Polygon braucht mindestens 3 Eckpunkte")
+    u, v = _section_axes(plane)
+    crossings = []
+    for a, b in zip(pts, np.roll(pts, -1, axis=0)):
+        # half-open rule: a vertex on the line counts for exactly one of its two edges
+        if (a[u] <= 0.0 < b[u]) or (b[u] <= 0.0 < a[u]):
+            crossings.append(float(a[v] + (b[v] - a[v]) * (0.0 - a[u]) / (b[u] - a[u])))
+    crossings.sort()
+    return [(crossings[k], crossings[k + 1]) for k in range(0, len(crossings) - 1, 2)]
+
+
+def obscuration_intervals(kind: str, params: dict, plane: str) -> list[tuple[float, float]]:
+    """Intervals ``(lo, hi)`` of the lateral coordinate where the section line is inside an obscuration.
+
+    ``kind`` and ``params`` are an entry of ``SurfaceLayout.obscurations``: "circular" (radius), "rectangular"
+    (half_width_x, half_width_y, rotation_deg) or "elliptical" (semi_axis_x, semi_axis_y, rotation_deg), each with
+    decenter_x and decenter_y in the local frame; the rotation turns the axes of the shape from +x towards +y.
+    Empty if the line misses the shape; ``ValueError`` for another kind."""
+    if kind not in ("circular", "rectangular", "elliptical"):
+        raise ValueError(f"Obskuration vom Typ „{kind}“ ist unbekannt")
+    cx, cy = float(params.get("decenter_x", 0.0)), float(params.get("decenter_y", 0.0))
+    theta = math.radians(float(params.get("rotation_deg", 0.0)))
+    cos, sin = math.cos(theta), math.sin(theta)
+
+    def to_shape(px: float, py: float) -> tuple[float, float]:
+        """Rotate a vector by -theta into the frame of the shape."""
+        return cos * px + sin * py, -sin * px + cos * py
+
+    u, v = _section_axes(plane)
+    direction = [0.0, 0.0]
+    direction[v] = 1.0
+    ax, ay = to_shape(-cx, -cy)  # the line passes through the local origin: point of the line at t = 0
+    bx, by = to_shape(*direction)
+    if kind == "rectangular":
+        lo, hi = -math.inf, math.inf
+        for a, b, half in ((ax, bx, float(params["half_width_x"])), (ay, by, float(params["half_width_y"]))):
+            if abs(b) < 1e-12:
+                if abs(a) > half:
+                    return []
+                continue
+            t0, t1 = sorted(((-half - a) / b, (half - a) / b))
+            lo, hi = max(lo, t0), min(hi, t1)
+        return [(lo, hi)] if lo < hi else []
+    if kind == "circular":
+        sx = sy = float(params["radius"])
+    else:
+        sx, sy = float(params["semi_axis_x"]), float(params["semi_axis_y"])
+    alpha = bx * bx / (sx * sx) + by * by / (sy * sy)
+    beta = ax * bx / (sx * sx) + ay * by / (sy * sy)
+    gamma = ax * ax / (sx * sx) + ay * ay / (sy * sy) - 1.0
+    disc = beta * beta - alpha * gamma
+    if disc <= 0.0:
+        return []
+    root = math.sqrt(disc)
+    return [((-beta - root) / alpha, (-beta + root) / alpha)]

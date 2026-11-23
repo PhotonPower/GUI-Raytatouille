@@ -7,6 +7,44 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Ansicht System-Datei: Aufklapper **JSON-Schema des Dateiformats** (`rt.schema`, Feature-Flag `schemas`) mit Download der
+  vier Schemas und einer Prüfung der Datei gegen das Schema (reines Modul `schema_check`; optionales Paket
+  `jsonschema`, Extra `schema`).
+- Ansicht Modell: Unter den Kennzahlen steht, wenn die **Blende auf einer Fläche** liegt (`aperture.stop`), und bei
+  einer objektseitigen NA, ob sie **paraxial oder real gelesen** wird (`aperture.reading`).
+- Ansicht Modell: Das Objekt zeigt bei endlichem Abstand seinen **Bezug** (`object.reference`, Schema 0.8), z. B.
+  „75 mm vor L1.S1“, und in der Hilfe das z des Objekts aus dem kompilierten System.
+- **Bauteile ein- und ausschalten** (Bibliothek ab 0.10, Feature-Flag `inactive`): Ein Aufklapper über dem Systemnamen
+  setzt `active: false` an Baugruppen und Elementen (reines Modul `active_nodes`). Alle Ansichten rechnen ohne die
+  ausgeschalteten Bauteile; die Quelle bleibt unverändert. Eine Datei mit älterem Schema bekommt Schema 0.10.0.
+- **Neue Flächentypen** (Bibliothek ab 0.10, Feature-Flag `surface_types`): Die Ansicht Modell benennt Biconic, Toroid,
+  Zylinder, Odd Asphere, Axicon, Forbes Q-con und Q-bfs sowie Freiformterme (Zernike, XY-Polynom, Gitter); sie
+  brach bei diesen Typen vorher mit einem Fehler ab. Die Kopfzeile zeigt bei anamorphen Systemen EFL, BFL und
+  Bildebene je Schnitt (`paraxial.first_order_section`). Der Baukasten hat die Spalten Form und Form-Parameter
+  (Schema 0.9.0), reines Modul `surface_shapes`. Im Layout zeichnet die Bibliothek diese Flächen schon selbst.
+- Neue Ansicht **Bestrahlungsstärke** (Bibliothek ab 0.10, Feature-Flag `irradiance`): der Footprint auf jeder Fläche
+  des Pfads aus `analysis.irradiance_map`, mit Wahl von Fläche und Besuch (Doppelpass), Bereich aus den Strahlen,
+  der Apertur oder frei, bis 100 000 Strahlen für jede Fläche und bis 4 Mio. für die letzte, Liste der nicht
+  gezählten Strahlen mit Grund und Export als CSV und JSON.
+- Neue Ansicht **Toleranzen** (Bibliothek ab 0.9, Feature-Flag `tolerance`): die Items des Toleranzsatzes, die
+  Sensitivität (Φ(±T), Anteile, RSS, vorhergesagte Streuung, Grenzen T′ der inversen Sensitivität) und Monte Carlo
+  (Ausbeute mit Wilson-Intervall, Statistik, Histogramm, Prüflinge als CSV; bis 5000 Prüflinge, fester Seed).
+  Beide Rechnungen zeigen einen Fortschrittsbalken; sie laufen in einem Thread (`progress_run`), den der
+  Skript-Thread abfragt. Es gibt keinen Abbruchknopf.
+- Layout: **Polygonaperturen und Obskurationen** (Feature-Flag `aperture_shapes`). Ein Polygon (regelmäßiges Vieleck
+  oder freies Polygon) hat im Schnitt seine wirkliche Größe statt einer aus den Strahlen geschätzten Höhe.
+  Obskurationen (Kreis, Rechteck, Ellipse) erscheinen als dicke schwarze Linie auf der Fläche, soweit die
+  Schnittlinie durch die Achse sie trifft.
+- Baukasten: **Konstruktionshelfer** (`rt.design`, Feature-Flag `design`). Ein Aufklapper baut ein Singlet, ein
+  verkittetes Dublett oder ein Triplet aus Radien, Dicken, Gläsern und Abständen, oder eine Linse aus einem
+  Linsenkatalog (JSON), und ersetzt damit die Flächentabelle. Die Bibliothek prüft das System; Fehler erscheinen
+  als Meldung. Eine Blende auf einer Fläche kennt die Tabelle nicht.
+- Optimierung: **Live-Verlauf.** Während des Laufs zeichnet die Ansicht nach jedem angenommenen Schritt die
+  Merit-Funktion φ (Bibliothek ab 0.10, Feature-Flag `on_iteration`; Neuzeichnen höchstens alle 0,15 s).
+- Erkennt die Funktionen von Raytatouille 0.9.0 und 0.10.0 und danach (`Features`): `tolerance`, `irradiance`,
+  `design`, `surface_types`, `freeform`, `anamorphic_first_order`, `aperture_shapes`, `inactive`,
+  `on_iteration`, `object_reference`, `stop_on_surface`, `schemas`. Sie stehen in der Seitenleiste; Ansichten,
+  die sie nutzen, folgen.
 - Neue Ansicht **Detektorbild**: die Bildfläche wie eine Kamera, mit bis zu 4 Mio. Strahlen und einem
   Pixelraster, dessen Auflösung in x und y frei wählbar ist; Quelle gleichmäßig je Pupillenpunkt oder
   isotrop (je Raumwinkel), Bildfeld automatisch oder frei, Skala linear oder logarithmisch, Farbtabelle.

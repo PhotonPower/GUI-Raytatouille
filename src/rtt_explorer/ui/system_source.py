@@ -15,12 +15,15 @@ from ..builder import (
     MIN_THICKNESS,
     PRESETS,
     ROW_TYPES,
+    SHAPE_COLUMNS,
     VARIABLE_COLUMNS,
     build_system_dict,
     surface_rows,
 )
 from ..compat import FEATURES
+from ..surface_shapes import FORMS
 from .common import STRETCH
+from .design_helper import design_helper
 
 
 def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
@@ -61,14 +64,19 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
         for col in VARIABLE_COLUMNS:  # also for tables of sessions from before the variable columns
             if col not in ss.bdf:
                 ss.bdf[col] = False
+        for col in SHAPE_COLUMNS:  # the same for the surface forms
+            if col not in ss.bdf:
+                ss.bdf[col] = ""
         left, right = st.columns([3, 2])
         with left:
             name = st.text_input("Name", value=preset)
             epd = st.number_input("Eintrittspupillendurchmesser EPD (mm)", value=20.0, min_value=0.01)
+            design_helper(epd)
             st.markdown("**Flächentabelle** (z-Position ergibt sich aus der Summe der Dicken)")
             row_types = [t for t in ROW_TYPES if t != "Ideallinse" or FEATURES.ideal_lens]
             edited = st.data_editor(
                 ss.bdf, key=f"bed_{ss.bver}", num_rows="dynamic", **STRETCH,
+                column_order=BUILDER_COLUMNS + VARIABLE_COLUMNS + (SHAPE_COLUMNS if FEATURES.surface_types else []),
                 column_config={
                     "Typ": st.column_config.SelectboxColumn("Typ", options=row_types, required=True),
                     "Radius_mm": st.column_config.NumberColumn(
@@ -81,6 +89,16 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
                     "Coating": st.column_config.TextColumn(
                         "Coating", help="Optional, KATALOG:NAME, z. B. DEMO:AR_MGF2 (Coating-Katalog "
                                         "in der Seitenleiste aktivieren)"),
+                    "Form": st.column_config.SelectboxColumn(
+                        "Form", options=list(FORMS[1:]), required=False,
+                        help="Leer: Kugel oder Konik. Sonst Biconic, Toroid, Zylinder, Odd Asphere, Axicon oder "
+                             "Forbes Q-con/Q-bfs (Schema 0.9); die weiteren Werte stehen in Form-Parameter."),
+                    "Form_Parameter": st.column_config.TextColumn(
+                        "Form-Parameter", help="schlüssel=wert, getrennt durch Semikolon, Listen mit Komma. "
+                                               "Biconic: radius_y, conic_y. Toroid: radius_of_rotation, "
+                                               "coefficients. Zylinder: coefficients. Odd Asphere: coefficients "
+                                               "(A1, A2, …). Axicon: angle_deg. Q-con, Q-bfs: "
+                                               "normalization_radius, coefficients."),
                     "R_var": st.column_config.CheckboxColumn("R var", help="Radius ist Optimierungsvariable"),
                     "K_var": st.column_config.CheckboxColumn("k var", help="Konik ist Optimierungsvariable"),
                     "D_var": st.column_config.CheckboxColumn(
@@ -93,6 +111,11 @@ def system_source(mode: str, repo: Path | None) -> tuple[str, str, dict | None]:
                        "verkittetes Element." + (" Eine Zeile vom Typ Ideallinse ist eine dünne ideale Linse in "
                                                   "Luft mit der Brennweite in der Radius-Spalte."
                                                   if FEATURES.ideal_lens else ""))
+            if FEATURES.surface_types:
+                st.caption("Spalte Form: Bei Biconic gelten Radius und Konik für den x-Schnitt, radius_y und conic_y "
+                           "stehen in den Form-Parametern. Toroid und Zylinder: Radius im y-z-Schnitt. Odd Asphere, "
+                           "Q-con und Q-bfs tragen die Krümmung 1/Radius (Radius 0 = plane Basis). Beispiel "
+                           "Form-Parameter: `radius_y=-60` oder `coefficients=0, 1e-4`.")
             glass_options = ss.get("glass_options", [])
             if glass_options:
                 with st.expander("Glas aus einem aktiven Katalog in die Tabelle eintragen"):

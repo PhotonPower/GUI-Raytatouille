@@ -34,6 +34,24 @@ Einheiten: Längen in mm, Wellenlängen in µm, Felder in Grad. Die optische Ach
 | Material danach | `AIR`, `CONST:1.5168` oder `KATALOG:GLAS` (z. B. `SCHOTT:N-BK7`) |
 | Halbdurchm. | Halber freier Durchmesser, 0 = frei |
 | Coating | optional `KATALOG:NAME`, z. B. `DEMO:AR_MGF2` |
+| Form, Form-Parameter | optional (ab Raytatouille 0.10): `Biconic`, `Toroid`, `Zylinder`, `Odd Asphere`, `Axicon`, `Forbes Q-con`, `Forbes Q-bfs`; leer heißt Kugel oder Konik. Weitere Werte als `schlüssel=wert`, getrennt durch Semikolon, Listen mit Komma |
+
+**Flächenformen** (Spalte Form; die Datei bekommt Schema 0.9.0). Radius und Konik der Zeile gelten für die
+Hauptrichtung, alles Weitere steht in den Form-Parametern:
+
+| Form | Radius, Konik | Form-Parameter |
+| --- | --- | --- |
+| Biconic | x-Schnitt (Radius ≠ 0) | `radius_y` (Pflicht), `conic_y` |
+| Toroid | Profil im y-z-Schnitt (Radius ≠ 0) | `radius_of_rotation` (Pflicht), `coefficients` (A4, A6, …) |
+| Zylinder | Profil im y-z-Schnitt, flach in x (Radius ≠ 0) | `coefficients` |
+| Odd Asphere | Krümmung 1/Radius (Radius 0 = plane Basis) | `coefficients` (A1, A2, …; mindestens einer) |
+| Axicon | beide 0 | `angle_deg` (Pflicht, −90° bis 90°) |
+| Forbes Q-con, Q-bfs | Krümmung 1/Radius | `normalization_radius` (Pflicht, > 0), `coefficients` (a0, a1, …) |
+
+Beispiel: Biconic mit Radius 40, Konik −0,5 und `radius_y=-60`. Die Spalten R var und k var gelten für
+Radius und Konik (bei Odd Asphere, Q-con und Q-bfs nur k var, weil dort die Krümmung die Größe ist). Die
+Freiformterme (Zernike, XY-Polynom, Gitter) lassen sich im Baukasten nicht eintragen; geladene Dateien
+mit ihnen zeigt die Ansicht Modell. Der Helfer-Aufklapper erzeugt weiter nur Kugel und Konik.
 
 Regeln: Genau eine Blende (in Luft) und genau eine Bildzeile am Ende. Das Glas steht in der Zeile der
 ersten Linsenfläche; die Fläche, die wieder in Luft führt, schließt die Linse ab. Aufeinanderfolgende
@@ -45,6 +63,16 @@ Eine Zeile vom Typ **Ideallinse** ist eine dünne ideale Linse in Luft (Material
 optional, keine Konik und kein Coating. Sie bildet für ein unendlich fernes Objekt fehlerfrei ab;
 „R var“ macht die Brennweite zur Optimierungsvariablen. Mit einer Ideallinse hat die Datei Schema
 0.5.0.
+
+**Konstruktionshelfer** (ab der Bibliotheksversion nach 0.10, `rt.design`): Der Aufklapper über der
+Tabelle baut ein Singlet, ein verkittetes Dublett oder ein Triplet aus wenigen Zahlen: Radien (0 = plan),
+Dicken, bei einem Triplet zwei Luftabstände, Gläser, Abstand Blende → erste Fläche, Halbdurchmesser und
+Abstand letzte Fläche → Bild. Zahlen mit Dezimalpunkt, getrennt durch Komma, Semikolon oder Leerzeichen.
+Alternativ lädt man einen Linsenkatalog (JSON, Format `raytatouille-lenses`) und wählt eine Linse.
+„Als Flächentabelle übernehmen“ ersetzt die Tabelle; Wellenlängen, Feldpunkte und EPD bleiben. Die
+Bibliothek prüft das System; Fehler erscheinen als Meldung, die Tabelle bleibt dann unverändert. Die Blende
+liegt immer vor der ersten Linse (Radius EPD/2); eine Blende zwischen den Linsen stellt man danach in der
+Tabelle ein. Der Bildabstand ist eine Eingabe, kein paraxialer Fokus; dafür gibt es den Knopf unten.
 
 Hilfen: „Glas aus einem aktiven Katalog eintragen“ und der Knopf **Bildebene auf paraxialen Fokus
 setzen**, der die letzte Dicke anpasst.
@@ -65,10 +93,23 @@ setzen**, der die letzte Dicke anpasst.
 - In der Ansicht **Optimierung** „Optimieren“ drücken; **Ergebnis in die Flächentabelle übernehmen**
   schreibt die neuen Werte in die Tabelle zurück.
 
+## Bauteile ein- und ausschalten
+
+Der Aufklapper **Bauteile ein- und ausschalten** (ab Raytatouille 0.10, Schema 0.10) steht über dem Systemnamen.
+Er hat ein Kästchen je Baugruppe und Element (die Wurzel ausgenommen). Ein ausgeschaltetes Bauteil trägt
+`"active": false`: Es bleibt im Modell und im Layout, aber kein Pfad besucht es, und Variablen, Toleranzen und
+Kriterien an ihm entfallen. Eine ausgeschaltete Baugruppe schaltet ihre Kinder mit aus (deren Kästchen sind dann
+gesperrt). Alle Ansichten rechnen mit dem geänderten System; die Quelle bleibt unverändert, und ein Wechsel der
+Quelle oder ein übernommenes Optimierungsergebnis setzt die Auswahl zurück. Schaltet man die Blende aus oder
+bleibt kein Pfad übrig, erscheint die Meldung der Bibliothek. Eine Datei mit älterem Schema bekommt beim
+Ausschalten Schema 0.10.0.
+
 ## Kopfzeile
 
-Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Darunter ein
-Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
+Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Bei einem anamorphen
+System (Biconic, Toroid, Zylinder; ab Raytatouille 0.10) gibt es kein rotationssymmetrisches `first_order`;
+die Kopfzeile zeigt dann EFL, BFL und Bildebene je Hauptschnitt als „x | y“ (`–` heißt afokal im Schnitt).
+Darunter ein Aufklapper mit Wellenlängen, Feldern, Pfaden und Flächen-IDs.
 
 ## Ansichten
 
@@ -100,7 +141,12 @@ Linienart; die Legende nennt die Pfadnamen. Ausgeschaltet zeigt das Layout nur d
 Seitenleiste. Blenden und Detektoren stehen an ihrer Position und mit ihrer Verkippung (z. B. der
 Detektor des Michelson bei y = −50). Eine Ringblende (Blende oder dünnes Element mit Innenradius)
 zeichnet das Layout als Material: Die gesperrte Mitte und die Backen außen sind dicke schwarze
-Balken, der offene Ring ist eine dünne graue Linie. Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
+Balken, der offene Ring ist eine dünne graue Linie. Polygonaperturen (regelmäßiges Vieleck, freies Polygon;
+Bibliothek nach 0.10) haben im Schnitt die Größe, in der die Schnittlinie durch die Achse das Polygon durchquert,
+also beim Sechseck in yz bis zu den Ecken und in xz bis zu den Kanten. Obskurationen (Kreis, Rechteck, Ellipse,
+z. B. Fangspiegel und Spinne) zeichnet das Layout als dicke schwarze Linie auf der Fläche, aber nur dort, wo
+die Schnittlinie durch die Achse sie trifft: Ein Spinnenarm quer zum Schnitt erscheint als dünner Streifen,
+einer längs des Schnitts über seine ganze Länge, ein dezentrierter Körper abseits der Schnittlinie gar nicht. Endet ein Pfad mit einer Reflexion oder Totalreflexion, zeigt
 ein blasses Stück, wohin die Strahlen danach laufen; seine Länge dient nur der Orientierung. Hinter
 einem Detektor gibt es kein solches Stück. Radius und Startebene des freien Bündels werden beim
 Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen bleiben.
@@ -108,6 +154,20 @@ Wechsel auf ein anderes System auf dessen Vorgaben zurückgesetzt, die Neigungen
 **Spot:** RMS um Schwerpunkt und Hauptstrahl, GEO-Radius, angekommene Strahlen. Der Airy-Radius
 1,22·λ·N_w ist ein Vergleichswert (Näherung); N_w ist die paraxiale Arbeitsblende 1/(2|n′u′|) der
 Bibliothek und gilt auch für ein Objekt im Endlichen (ohne Prescription, vor 0.6: |EFL|/EPD).
+
+**Bestrahlungsstärke** (ab Raytatouille 0.10, braucht eine Blende): der Footprint auf jeder Fläche des gewählten
+Pfads, nicht nur auf der Bildfläche. Gewählt werden Fläche (Vorgabe: die letzte), Feld, Wellenlänge, Aiming, die
+Zahl der Strahlen sowie Zellen in x und y (4 bis 2048). Die Karte zeigt das einfallende Gewicht je projizierter
+Zellfläche in der lokalen Ebene der Fläche (Gewicht je mm²), also die Leistung, die an der Fläche ankommt, nicht
+die, die danach weiterläuft. Bis 100 000 Strahlen gilt für jede Fläche; mehr (bis 4 Mio., etwa 2 GB und 7 s)
+gibt es nur für die letzte Fläche des Pfads. Trifft der Pfad eine Fläche mehrfach (Doppelpass, Spiegel), zählt
+„alle Besuche“ sie zusammen, oder man wählt einen Besuch. **Bereich:** „Aus den Strahlen“ (Rechteck um alle
+Treffer mit Rand), „Apertur der Fläche“ (nur bei Flächen mit Apertur, sonst eine Meldung) oder „Frei“. Strahlen,
+die nicht in der Karte zählen, stehen mit Grund unter der Karte (außerhalb des Rasters, abgeschattet, Fläche nicht
+erreicht). Skala linear oder logarithmisch, Farbtabelle wählbar; die Karte lässt sich als CSV und das Ergebnis als
+JSON laden. Gerechnet wird nur bei einer Änderung von Fläche, Feld, Wellenlänge, Strahlzahl oder Aiming. Die Ansicht
+Detektorbild bleibt für die Bildfläche mit Pixelraster wie eine Kamera, einer isotropen Quelle und bis zu 4 Mio.
+Strahlen.
 
 **Detektorbild:** Die Bildfläche (das letzte Ereignis des Pfads aus der Seitenleiste) wie eine Kamera:
 viele Strahlen, Auftreffpunkte in einem Pixelraster, Pixelzahl in x und y frei wählbar (8 bis 4096).
@@ -194,13 +254,34 @@ dem freien Bündel, dessen Mittelstrahl dann der Hauptstrahl ist.
 - Oben die Merit-Funktion: Operanden mit Ziel, Gewicht und Startwert, Generatoren (RMS-Spot oder
   RMS-Wellenfront mit Gauß-Abtastung) mit Start-RMS, darunter die Variablen mit Grenzen.
 - „Optimieren“ startet den Levenberg-Marquardt-Optimierer der Bibliothek auf einer Kopie; die Optionen
-  (Iterationen, ftol, xtol) stehen im Aufklapper. Danach: Status, Verlauf der normierten
+  (Iterationen, ftol, xtol) stehen im Aufklapper. Während des Laufs zeichnet die Ansicht nach jedem
+  angenommenen Schritt den Verlauf von φ und nennt Schritt und besten Wert (ab Raytatouille 0.10; ältere
+  Versionen zeigen nur den Spinner). Einen Abbruchknopf gibt es nicht, weil Streamlit während des Laufs
+  keine Eingaben annimmt. Danach: Status, Verlauf der normierten
   Merit-Funktion φ, Variablen vorher/nachher (an der Grenze markiert), Beiträge der Operanden und
   Generatoren.
 - „Ergebnis übernehmen“ macht das optimierte System in allen Ansichten aktiv, bis „Verwerfen“ gedrückt
   oder die Quelle gewechselt wird. Speichern als `.rtt.json`, als JSON Patch oder als Ergebnis-JSON.
 - Große Strafgewichte auf Gleichheitsbedingungen (z. B. EFL mit Gewicht 10⁴ in `m5/singlet_optim`)
   lassen den Optimierer früh stehen bleiben; besser die Bedingung über die Parametertabelle halten.
+
+**Toleranzen** (ab Raytatouille 0.9): für Systeme mit einem Abschnitt `tolerances` (z. B. `m7/achromat_tolerances`).
+Der Explorer liest den Toleranzsatz und ändert ihn nicht; Klasse, Kriterien und Kompensatoren stehen in der Datei.
+Drei Reiter:
+- **Items:** alle Toleranzen, die der Satz ergibt (Klassen und explizite Items): Art, Ziel, Grenze T mit Einheit,
+  Verteilung und Herkunft.
+- **Sensitivität:** „Sensitivität rechnen“ wertet jedes Item bei +T und −T aus, alle anderen bei 0, nach dem Lauf der
+  Kompensatoren. Oben das Nominalsystem mit den Kriterien und ihren Grenzen. Je Kriterium (Auswahl) stehen RSS und die
+  vorhergesagte Streuung, eine Tabelle mit Φ(+T), Φ(−T), größter Änderung, Anteil an der Streuung und der Grenze T′
+  der inversen Sensitivität sowie ein Balkendiagramm der größten Beiträge. Mit dem Haken „Bestätigung“ läuft jedes Item
+  ein zweites Mal bei ±T′.
+- **Monte Carlo:** Zahl der Prüflinge (höchstens 5000) und Seed, dann „Monte Carlo rechnen“. Ergebnis: gültige
+  Prüflinge, Gesamtausbeute mit Wilson-Intervall, je Kriterium Mittel, σ, Min, Max, Perzentile, Grenze und Ausbeute,
+  ein Histogramm mit Nominalwert und Grenzen sowie die Prüflinge als CSV. Gleicher Seed gibt dieselbe Ziehung.
+
+Beide Rechnungen zeigen einen Fortschrittsbalken. Einen Abbruchknopf gibt es nicht: Streamlit nimmt während der
+Rechnung keine Eingaben an. Die Obergrenze der Prüflinge hält die Wartezeit begrenzt (ein Prüfling braucht bei
+kleinen Systemen etwa 10 ms, bei großen mit Kompensatoren Sekunden).
 
 **Reports:** drei Reiter mit Tabellen der Bibliothek, jeweils als CSV und JSON.
 - *Abmessungen:* je Glassegment Mittendicke, Halbdurchmesser und Apertur beider Flächen, Randdicke und
@@ -213,12 +294,22 @@ dem freien Bündel, dessen Mittelstrahl dann der Hauptstrahl ist.
 Transmission, Dispersionskurven und Abbe-Zahl. Absolute Brechzahlen beziehen sich auf Systemtemperatur
 und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher leicht ab.
 
-**Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt,
+**Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt (bei endlichem
+Objekt mit Abstand und Bezug: „75 mm vor L1.S1“ heißt vor dem nominalen Scheitel dieser Fläche, ohne Bezug
+vom globalen Ursprung; die Hilfe am Wert nennt das z des Objekts; Bezug ab Raytatouille 0.8; unter den Kennzahlen
+stehen die Blende auf einer Fläche (`aperture.stop`) und bei einer objektseitigen NA, ob sie paraxial
+(u = NA / n) oder real (n·sin U = NA) gelesen wird (`aperture.reading`)),
 Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
-Wechselwirkung, Phase), die Pfade mit ihren Ereignissen sowie Parametertabelle und
+Wechselwirkung, Phase; die Form nennt auch Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Q-con, Q-bfs und
+Freiformterme wie Zernike, XY-Polynom und Gitter), die Pfade mit ihren Ereignissen sowie Parametertabelle und
 Konfigurationen. `V` markiert Variablen, `→ NAME` an eine Parameterzeile gebundene Werte. Ideale
 Linsen stehen mit Brennweite, Objektabstand und bei Zylinderlinsen mit Achse in der Spalte
 Wechselwirkung. Nur lesen.
 
 **System-Datei:** zeigt das System als JSON und speichert es als `.rtt.json`; bei Konfigurationen
-auch die gewählte Konfiguration mit festen Werten.
+auch die gewählte Konfiguration mit festen Werten. Der Aufklapper **JSON-Schema des Dateiformats** (ab Raytatouille
+0.10, `rt.schema`) bietet die Schemas von System, Ergebnis, Coating-Katalog und Linsenkatalog zum Herunterladen an
+und prüft mit „Datei gegen das Schema prüfen“ das System, wie es geladen wurde (also mit eingeschalteten
+Bauteilen und übernommenem Optimierungsergebnis), gegen das Schema: eine Tabelle mit Stelle (JSON-Zeiger) und
+Meldung, höchstens 50 Zeilen. Die Prüfung braucht das Paket `jsonschema` (`pip install jsonschema` oder der Extra
+`schema`); ohne es erscheint ein Hinweis. Die inhaltliche Prüfung macht weiter die Bibliothek beim Laden.
