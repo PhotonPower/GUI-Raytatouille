@@ -296,7 +296,9 @@ und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher lei
 
 **Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt (bei endlichem
 Objekt mit Abstand und Bezug: „75 mm vor L1.S1“ heißt vor dem nominalen Scheitel dieser Fläche, ohne Bezug
-vom globalen Ursprung; die Hilfe am Wert nennt das z des Objekts; Bezug ab Raytatouille 0.8),
+vom globalen Ursprung; die Hilfe am Wert nennt das z des Objekts; Bezug ab Raytatouille 0.8; unter den Kennzahlen
+stehen die Blende auf einer Fläche (`aperture.stop`) und bei einer objektseitigen NA, ob sie paraxial
+(u = NA / n) oder real (n·sin U = NA) gelesen wird (`aperture.reading`)),
 Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
 Wechselwirkung, Phase; die Form nennt auch Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Q-con, Q-bfs und
 Freiformterme wie Zernike, XY-Polynom und Gitter), die Pfade mit ihren Ereignissen sowie Parametertabelle und

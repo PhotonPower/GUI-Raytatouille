@@ -7,6 +7,8 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- Ansicht Modell: Unter den Kennzahlen steht, wenn die **Blende auf einer Fläche** liegt (`aperture.stop`), und bei
+  einer objektseitigen NA, ob sie **paraxial oder real gelesen** wird (`aperture.reading`).
 - Ansicht Modell: Das Objekt zeigt bei endlichem Abstand seinen **Bezug** (`object.reference`, Schema 0.8), z. B.
   „75 mm vor L1.S1“, und in der Hilfe das z des Objekts aus dem kompilierten System.
 - **Bauteile ein- und ausschalten** (Bibliothek ab 0.10, Feature-Flag `inactive`): Ein Aufklapper über dem Systemnamen

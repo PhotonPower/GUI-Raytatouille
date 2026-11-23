@@ -117,6 +117,24 @@ def object_text(objects, object_z: float | None = None) -> tuple[str, str | None
     return value, help_text
 
 
+def aperture_notes(aperture) -> list[str]:
+    """Explanations of the system aperture beyond its type and value (empty for the plain case).
+
+    ``aperture.stop`` (schema 0.8) makes the aperture of a lens, mirror, plate or thin element surface the stop;
+    ``aperture.reading`` (schema 0.8) says how an object-space NA is read: paraxial u = NA / n (default) or real
+    n sin U = NA at the marginal ray."""
+    notes = []
+    surface = getattr(getattr(aperture, "stop", None), "surface", None)
+    if surface:
+        notes.append(f"Blende: die Apertur der Fläche {surface} (aperture.stop); ohne sie gilt das Blendenelement")
+    if getattr(getattr(aperture, "type", None), "name", "") == "OBJECT_SPACE_NA":
+        if getattr(getattr(aperture, "reading", None), "name", "PARAXIAL") == "REAL":
+            notes.append("NA real gelesen: der Randstrahl hat n·sin U = NA (aperture.reading)")
+        else:
+            notes.append("NA paraxial gelesen: u = NA / n (Standard)")
+    return notes
+
+
 def aperture_text(aperture) -> str:
     """Clear aperture of a surface in mm; ``frei`` without aperture."""
     if aperture is None:

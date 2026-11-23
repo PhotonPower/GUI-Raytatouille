@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from ..context import AppContext
-from ..model_table import num, object_text, param_text, surface_rows
+from ..model_table import aperture_notes, num, object_text, param_text, surface_rows
 from ..ui.common import STRETCH
 
 TITLE = "Modell"
@@ -31,6 +31,9 @@ def render(ctx: AppContext) -> None:
     object_value, object_help = object_text(objects, getattr(ctx.comp, "object_z", None))
     m[1].metric("Objekt", object_value, help=object_help)
     m[2].metric("Feldart", FIELD_TYPES.get(system.fields.type.name, system.fields.type.name))
+
+    for note in aperture_notes(aperture):
+        st.caption(note)
 
     st.markdown("**Flächen** (V = Variable, → = an eine Zeile der Parametertabelle gebunden)")
     st.dataframe(pd.DataFrame(surface_rows(system.root)), hide_index=True, **STRETCH)
