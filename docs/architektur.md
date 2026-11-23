@@ -42,6 +42,7 @@ flowchart TD
 | `layout_geometry` | Lage ebener Flächen im Schnitt, Strahlstücke nach dem letzten Ereignis eines Pfads, gesperrte und offene Bänder einer Ringblende, Schnitt der Achsenlinie mit Polygonaperturen und Obskurationen | nein |
 | `detector_image` | Detektorbild: Pupillenpunkte (Sonnenblumenspirale), Bildfeld, Pixelraster, Skalen, Gewichte einer isotropen Quelle | nein |
 | `detector_rays` | Detektorbild: viele Strahlen zur Bildfläche verfolgen (Treffpunkte, Gewichte); braucht `raytatouille`, kein Streamlit | ja |
+| `active_nodes` | Bauteile ein- und ausschalten: Knotenliste des Modellbaums, `active` in der Systemdatei setzen | nein |
 | `surface_shapes` | Flächenformen des Baukastens (Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Forbes): Form-Parameter lesen, `shape.base` der Datei | nein |
 | `design_rows` | Konstruktionshelfer: Zahlen lesen, Ergebnis von `rt.design` (Dateiform) als Zeilen der Flächentabelle | nein |
 | `progress_run` | Eine Bibliotheksrechnung in einem Thread ausführen und ihren Fortschritt im Skript-Thread abfragen (Fortschrittsbalken) | nein |
@@ -72,6 +73,7 @@ flowchart TD
 - Widget-Schlüssel der Wellenfront- und Beugungsansicht: `opd_focus`, `opd_terms` und `diff_*`
   (`diff_field`, `diff_wl`, `diff_grid`, `diff_focus`, `diff_kind`, `diff_psf_log`, `diff_psf_zoom`,
   `diff_psf_zoom_rel`, `diff_ee_centre`, `diff_tf_factor`, `diff_tf_range`, `diff_tf_steps`).
+- Bauteile ein- und ausschalten (`ui.active_nodes`): ein Kästchen je Knoten mit dem Schlüssel `act_<Hash des Systemtextes>_<JSON-Zeiger>`.
 - Konstruktionshelfer im Baukasten (`ui.design_helper`): `design_source`, `design_stop`, `design_sd`, `design_apply`,
   `design_kind`, je Art `design_image_{kind}`, `design_radii_{kind}`, `design_thick_{kind}`, `design_gaps_triplet`,
   `design_materials_{kind}` (`kind` = `singlet`, `doublet`, `triplet`) und für Kataloge `design_image_catalog`,

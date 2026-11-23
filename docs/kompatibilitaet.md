@@ -37,7 +37,7 @@ zeigt das Ergebnis unter „Funktionen dieser Bibliotheksversion“.
 | `freeform` | `model.ZernikeFringeSag` (XY-Polynom und Gitter gehören dazu) | Dateien mit Freiformtermen (Schema 0.11) lassen sich nicht laden | nach 0.10.0 (#316) |
 | `anamorphic_first_order` | `paraxial.first_order_section` | Keine erste Ordnung je Schnitt für anamorphe Systeme | ab 0.10.0 (#315) |
 | `aperture_shapes` | `model.PolygonAperture`, `model.CircularObscuration` | Layout zeichnet Polygone und Obskurationen nicht; Dateien damit (Schema 0.11) lassen sich nicht laden | nach 0.10.0 (#320) |
-| `inactive` | `model.Element.active` | Kein Schalter „aktiv“ je Bauteil | ab 0.10.0 (#380) |
+| `inactive` | `model.Element.active` | Kein Aufklapper „Bauteile ein- und ausschalten“ | ab 0.10.0 (#380) |
 | `on_iteration` | `optim.IterationState` | Optimierung ohne Live-Verlauf | ab 0.10.0 (#378) |
 | `object_reference` | `model.ObjectSpace.reference` | Dateien mit `object.reference` (Schema 0.8) lassen sich nicht laden | ab 0.10.0 (#288) |
 | `stop_on_surface` | `model.SystemAperture.stop` | Dateien mit `aperture.stop` (Schema 0.8) lassen sich nicht laden | ab 0.10.0 (#53) |

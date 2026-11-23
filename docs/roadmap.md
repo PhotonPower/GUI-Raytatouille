@@ -25,6 +25,7 @@ Vorschlag, keine Zusage.
 - **Bestrahlungsstärke (0.10):** Ansicht Bestrahlungsstärke mit Footprint auf jeder Fläche des Pfads.
 - **Flächentypen (0.10):** Modell, Kopfzeile (Kennzahlen je Schnitt) und Baukasten kennen Biconic, Toroid,
   Zylinder, Odd Asphere, Axicon und Forbes; Freiformterme zeigt nur die Ansicht Modell.
+- **Aktiv-Flag (0.10):** Bauteile lassen sich im Aufklapper über dem Systemnamen ein- und ausschalten.
 
 ## Bekannte Grenzen
 

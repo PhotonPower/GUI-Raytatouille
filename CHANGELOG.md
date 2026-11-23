@@ -7,6 +7,9 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); Versionen 
 Angepasst an Raytatouille 0.8.0 (Tag `v0.8.0`, Commit `451ab4c`); läuft weiter mit 0.7.0 und älter.
 
 ### Hinzugefügt
+- **Bauteile ein- und ausschalten** (Bibliothek ab 0.10, Feature-Flag `inactive`): Ein Aufklapper über dem Systemnamen
+  setzt `active: false` an Baugruppen und Elementen (reines Modul `active_nodes`). Alle Ansichten rechnen ohne die
+  ausgeschalteten Bauteile; die Quelle bleibt unverändert. Eine Datei mit älterem Schema bekommt Schema 0.10.0.
 - **Neue Flächentypen** (Bibliothek ab 0.10, Feature-Flag `surface_types`): Die Ansicht Modell benennt Biconic, Toroid,
   Zylinder, Odd Asphere, Axicon, Forbes Q-con und Q-bfs sowie Freiformterme (Zernike, XY-Polynom, Gitter); sie
   brach bei diesen Typen vorher mit einem Fehler ab. Die Kopfzeile zeigt bei anamorphen Systemen EFL, BFL und

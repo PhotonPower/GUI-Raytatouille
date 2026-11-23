@@ -93,6 +93,17 @@ setzen**, der die letzte Dicke anpasst.
 - In der Ansicht **Optimierung** „Optimieren“ drücken; **Ergebnis in die Flächentabelle übernehmen**
   schreibt die neuen Werte in die Tabelle zurück.
 
+## Bauteile ein- und ausschalten
+
+Der Aufklapper **Bauteile ein- und ausschalten** (ab Raytatouille 0.10, Schema 0.10) steht über dem Systemnamen.
+Er hat ein Kästchen je Baugruppe und Element (die Wurzel ausgenommen). Ein ausgeschaltetes Bauteil trägt
+`"active": false`: Es bleibt im Modell und im Layout, aber kein Pfad besucht es, und Variablen, Toleranzen und
+Kriterien an ihm entfallen. Eine ausgeschaltete Baugruppe schaltet ihre Kinder mit aus (deren Kästchen sind dann
+gesperrt). Alle Ansichten rechnen mit dem geänderten System; die Quelle bleibt unverändert, und ein Wechsel der
+Quelle oder ein übernommenes Optimierungsergebnis setzt die Auswahl zurück. Schaltet man die Blende aus oder
+bleibt kein Pfad übrig, erscheint die Meldung der Bibliothek. Eine Datei mit älterem Schema bekommt beim
+Ausschalten Schema 0.10.0.
+
 ## Kopfzeile
 
 Brennweite EFL, Schnittweite BFL, f/#, Eintrittspupille und paraxiale Bildebene. Bei einem anamorphen
