@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from ..context import AppContext
-from ..model_table import num, param_text, surface_rows
+from ..model_table import num, object_text, param_text, surface_rows
 from ..ui.common import STRETCH
 
 TITLE = "Modell"
@@ -28,7 +28,8 @@ def render(ctx: AppContext) -> None:
     aperture, objects = system.aperture, system.object_space
     m = st.columns(3)
     m[0].metric(APERTURE_TYPES.get(aperture.type.name, aperture.type.name), param_text(aperture.value))
-    m[1].metric("Objekt", "unendlich" if objects.at_infinity else f"{param_text(objects.distance)} mm")
+    object_value, object_help = object_text(objects, getattr(ctx.comp, "object_z", None))
+    m[1].metric("Objekt", object_value, help=object_help)
     m[2].metric("Feldart", FIELD_TYPES.get(system.fields.type.name, system.fields.type.name))
 
     st.markdown("**Flächen** (V = Variable, → = an eine Zeile der Parametertabelle gebunden)")

@@ -294,7 +294,9 @@ kleinen Systemen etwa 10 ms, bei großen mit Kompensatoren Sekunden).
 Transmission, Dispersionskurven und Abbe-Zahl. Absolute Brechzahlen beziehen sich auf Systemtemperatur
 und -druck; der Katalogwert n_d bezieht sich meist auf Luft und weicht daher leicht ab.
 
-**Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt,
+**Modell:** liest das geladene System aus dem Modellbaum der Bibliothek: Systemapertur, Objekt (bei endlichem
+Objekt mit Abstand und Bezug: „75 mm vor L1.S1“ heißt vor dem nominalen Scheitel dieser Fläche, ohne Bezug
+vom globalen Ursprung; die Hilfe am Wert nennt das z des Objekts; Bezug ab Raytatouille 0.8),
 Feldart, eine Flächentabelle (Baugruppe, Element, Art, Material, z-Lage des Elements, Form, Radius, Konik, Apertur,
 Wechselwirkung, Phase; die Form nennt auch Biconic, Toroid, Zylinder, Odd Asphere, Axicon, Q-con, Q-bfs und
 Freiformterme wie Zernike, XY-Polynom und Gitter), die Pfade mit ihren Ereignissen sowie Parametertabelle und

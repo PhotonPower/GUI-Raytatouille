@@ -97,6 +97,26 @@ def shape_text(stack) -> tuple[str, str, str]:
     return form, radius, conic
 
 
+def object_text(objects, object_z: float | None = None) -> tuple[str, str | None]:
+    """(value, help) of the object in the model view: infinity, or the distance with its reference.
+
+    Without a reference the distance counts from the global origin; with ``reference.surface`` (schema 0.8)
+    from the nominal vertex of that surface, both along −z. ``object_z`` is the global z of the object from the
+    compiled system and is added to the help when given."""
+    if objects.at_infinity:
+        return "unendlich", None
+    distance = param_text(objects.distance)
+    surface = getattr(getattr(objects, "reference", None), "surface", None)
+    if surface:
+        value = f"{distance} mm vor {surface}"
+        help_text = f"Abstand vor dem nominalen Scheitel der Fläche {surface} längs −z"
+    else:
+        value, help_text = f"{distance} mm", "Abstand vom globalen Ursprung längs −z"
+    if object_z is not None:
+        help_text += f"; das Objekt liegt bei z = {num(object_z)} mm"
+    return value, help_text
+
+
 def aperture_text(aperture) -> str:
     """Clear aperture of a surface in mm; ``frei`` without aperture."""
     if aperture is None:
